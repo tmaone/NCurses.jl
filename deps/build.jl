@@ -51,21 +51,22 @@ end
     # """ )
 end
 
-ncurses_install_name = "ncurses-5.9"
 
-prefix = joinpath(BinDeps.depsdir(ncurses),"usr")
-patchdir = BinDeps.depsdir(ncurses)
-srcdir = joinpath(BinDeps.depsdir(ncurses),"src",ncurses_install_name)
+prefix = BinDeps.depsdir(ncurses)
+ncurses_install_name = "ncurses-5.9"
+srcdir = joinpath(BinDeps.depsdir(ncurses), ncurses_install_name)
+patch_dir   = joinpath(srcdir, "c++")
+patch_file = joinpath(patch_dir, "c++", "ncurses-5.9.patch")
+patch_file_src = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
 
 provides(SimpleBuild,
 (@build_steps begin
   GetSources(ncurses)
   @build_steps begin
-      ChangeDirectory(srcdir)
+    CreateDirectory(ncurses)
       @osx_only begin
-          patch_file_src = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
-          patch_file_path = joinpath(srcdir, "c++", "ncurses-5.9.patch")
-          run(download_cmd(patch_file_src, patch_file_path))
+          ChangeDirectory(patch_dir)
+          run(download_cmd(patch_file_src, patch_file))
           ChangeDirectory(joinpath(srcdir, "c++"))
           run(`patch -p1 --dry-run` < `ncurses-5.9.patch`)
       end
@@ -73,7 +74,6 @@ provides(SimpleBuild,
       `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
       `make`
       `make install`
-  end
 end), ncurses)
 
 "",
