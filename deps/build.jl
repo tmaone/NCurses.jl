@@ -66,6 +66,7 @@ end
 nc_ver = ccall((:curses_version, ncurses), Ptr{UInt8}, ())
 if nc_ver != C_NULL
     NCURSES_VERSION = bytestring(nc_ver)
+    println(NCURSES_VERSION)
 end
 
 # vstr = string("v\"", join(split(bytestring(p), ',')[1:3], '.'), "\"")
