@@ -77,7 +77,7 @@ if nc_ver != C_NULL
         write(file, "const libversion = $vstr\n")
     end
     NCURSES_VERSION = vstr
-    # println("NCurses Library Found, Version [$(vstr)")
+    println("NCurses Library Found, Version [$(vstr)")
 end
 
 # vstr = string("v\"", join(split(bytestring(p), ',')[1:3], '.'), "\"")
