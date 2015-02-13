@@ -73,10 +73,9 @@ if nc_ver != C_NULL
     minor = ver_num[2]
     build = ver_num[3]
     vstr = string("v\"", join([major,minor,build], '.'), "\"")
-    # vstr  = string("v\"", join(major, minor, build, '.'), "\"")
-    # open(joinpath(dirname(@__FILE__),"versioninfo.jl"), "w") do file
-    #     write(file, "const libversion = $vstr\n")
-    # end
+    open(joinpath(dirname(@__FILE__),"versioninfo.jl"), "w") do file
+        write(file, "const libversion = $vstr\n")
+    end
     # vstr = string("v\"", join(split(bytestring(nc_ver), ',')[1:3], '.'), "\"")
     # NCURSES_VERSION = bytestring(nc_ver)
     println(vstr)
