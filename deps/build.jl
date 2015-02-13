@@ -4,7 +4,7 @@ using BinDeps
 
 const ncurses_install_version = "5.9"
 
-libnames = ["libncurses", "libncursesw", "libncursestw"]
+libnames = ["libncursess", "libncursesw", "libncursestw"]
 suffixes = ["", "-5.9", "5.9", "5.4", "6", ".6."]
 options = [""]
 extensions = ["", ".a", ".so.5", ".dylib"]
@@ -51,9 +51,22 @@ end
     # """ )
 end
 
+ncurses_install_name = "ncurses-5.9"
+
+prefix = joinpath(BinDeps.depsdir(ncurses),"usr")
+patchdir = BinDeps.depsdir(ncurses)
+srcdir = joinpath(BinDeps.depsdir(ncurses),"src",ncurses_install_name)
+
 provides(SimpleBuild,
 (@build_steps begin
   GetSources(ncurses)
+  @build_steps begin
+      ChangeDirectory(srcdir)
+      `./configure --prefix=$prefix --enable-dependency-linking`
+      `make`
+      `make clean`
+      `pwd`
+  end
 end),ncurses)
 
 @BinDeps.install Dict([(:ncurses => :ncurses)])
@@ -64,7 +77,7 @@ if isdefined(:__init__)
     __init__()
 end
 nc_ver = ccall((:curses_version, ncurses), Ptr{UInt8}, ())
-if nc_ver != C_NULL
+if nc_ver == C_NULL
     ver_str = split(bytestring(nc_ver), ' ')
     ver_str_name = ver_str[1]
     ver_str_num  = ver_str[2]
