@@ -65,8 +65,21 @@ if isdefined(:__init__)
 end
 nc_ver = ccall((:curses_version, ncurses), Ptr{UInt8}, ())
 if nc_ver != C_NULL
-    NCURSES_VERSION = bytestring(nc_ver)
-    println(NCURSES_VERSION)
+    ver_str = split(bytestring(nc_ver), ' ')
+    ver_str_name = ver_str[1]
+    ver_str_num  = ver_str[2]
+    ver_num = split(ver_str_num, '.')
+    major = ver_num[1]
+    minor = ver_num[2]
+    build = ver_num[3]
+    vstr = string("v\"", join([major,minor,build], '.'), "\"")
+    # vstr  = string("v\"", join(major, minor, build, '.'), "\"")
+    # open(joinpath(dirname(@__FILE__),"versioninfo.jl"), "w") do file
+    #     write(file, "const libversion = $vstr\n")
+    # end
+    # vstr = string("v\"", join(split(bytestring(nc_ver), ',')[1:3], '.'), "\"")
+    # NCURSES_VERSION = bytestring(nc_ver)
+    println(vstr)
 end
 
 # vstr = string("v\"", join(split(bytestring(p), ',')[1:3], '.'), "\"")

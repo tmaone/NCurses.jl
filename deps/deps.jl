@@ -9,7 +9,7 @@ macro checked_lib(libname, path)
 end
 
 # Load dependencies
-@checked_lib libncurses "/usr/local/Cellar/ncurses/5.9/lib/libncursestw.6.dylib"
+@checked_lib ncurses "/usr/local/Cellar/ncurses/5.9/lib/libncursestw.6.dylib"
 
 # Load-hooks
 
