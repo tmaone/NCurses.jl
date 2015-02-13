@@ -59,12 +59,12 @@ const patch_file_src = "https://trac.macports.org/export/103963/trunk/dports/dev
 
 provides(BuildProcess,
         (@build_steps begin
-          CreateDirectory(srcdir)
           GetSources(ncurses)
+          CreateDirectory(srcdir)
           @build_steps begin
               ChangeDirectory(srcdir)
               @osx_only begin
-                patch_path =joinpath(srcdir, "c++")
+                patch_path = joinpath(srcdir, "c++")
                 ChangeDirectory(patch_path)
                 run(download_cmd(patch_file_src, joinpath(patch_path, "ncurses-5.9.patch")))
                 ChangeDirectory(joinpath(srcdir, "c++"))
