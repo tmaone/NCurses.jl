@@ -20,7 +20,7 @@ URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz") => ncurses
 
 ncurses_home = get(ENV, "NCURSES_HOME", "") # If MAGICK_HOME is defined, add to library search path
 
-if !isempty(mpath)
+if !isempty(ncurses_home)
     push!(DL_LOAD_PATH, ncurses_home)
     push!(DL_LOAD_PATH, joinpath(ncurses_home,"lib"))
 end
