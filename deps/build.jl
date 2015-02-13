@@ -56,7 +56,7 @@ prefix = BinDeps.depsdir(ncurses)
 ncurses_install_name = "ncurses-5.9"
 srcdir = joinpath(BinDeps.depsdir(ncurses), ncurses_install_name)
 patch_dir   = joinpath(srcdir, "c++")
-patch_file = joinpath(patch_dir, "c++", "ncurses-5.9.patch")
+patch_file = joinpath(patch_dir, "ncurses-5.9.patch")
 patch_file_src = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
 
 provides(BuildProcess,
