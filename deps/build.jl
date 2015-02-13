@@ -59,21 +59,23 @@ patch_dir   = joinpath(srcdir, "c++")
 patch_file = joinpath(patch_dir, "c++", "ncurses-5.9.patch")
 patch_file_src = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
 
-provides(SimpleBuild,
-(@build_steps begin
-  GetSources(ncurses)
-    # CreateDirectory(ncurses)
-      # @osx_only begin
-      #     ChangeDirectory(patch_dir)
-      #     run(download_cmd(patch_file_src, patch_file))
-      #     ChangeDirectory(joinpath(srcdir, "c++"))
-      #     run(`patch -p1 --dry-run` < `ncurses-5.9.patch`)
-      #   end
-      # ChangeDirectory(srcdir)
-      # `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
-      # `make`
-      # `make install`
-end), ncurses)
+provides(BuildProcess,
+        (@build_steps begin
+          CreateDirectory(srcdir)
+          GetSources(ncurses)
+          @build_steps begin
+              ChangeDirectory(srcdir)
+              @osx_only begin
+                ChangeDirectory(patch_dir)
+                run(download_cmd(patch_file_src, patch_file))
+                ChangeDirectory(joinpath(srcdir, "c++"))
+                run(`patch -p1 --dry-run` < `ncurses-5.9.patch`)
+              end
+              `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
+            `make`
+            `make install`
+            end
+        end), ncurses)
 
 @BinDeps.install Dict([(:ncurses => :ncurses)])
 
