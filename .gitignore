@@ -1,3 +1,4 @@
 *.jl.cov
 *.jl.mem
 deps/versioninfo.jl
+deps/deps.jl
