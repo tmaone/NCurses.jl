@@ -76,9 +76,8 @@ if nc_ver != C_NULL
     open(joinpath(dirname(@__FILE__),"versioninfo.jl"), "w") do file
         write(file, "const libversion = $vstr\n")
     end
-    # vstr = string("v\"", join(split(bytestring(nc_ver), ',')[1:3], '.'), "\"")
-    # NCURSES_VERSION = bytestring(nc_ver)
-    println(vstr)
+    NCURSES_VERSION = vstr
+    # println("NCurses Library Found, Version [$(vstr)")
 end
 
 # vstr = string("v\"", join(split(bytestring(p), ',')[1:3], '.'), "\"")
