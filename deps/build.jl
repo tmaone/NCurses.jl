@@ -62,12 +62,29 @@ provides(SimpleBuild,
   GetSources(ncurses)
   @build_steps begin
       ChangeDirectory(srcdir)
-      `./configure --prefix=$prefix --enable-dependency-linking`
+      @osx_only begin
+          patch_file_src = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
+          patch_file_path = joinpath(srcdir, "c++", "ncurses-5.9.patch")
+          run(download_cmd(patch_file_src, patch_file_path))
+          ChangeDirectory(joinpath(srcdir, "c++"))
+          run(`patch -p1 --dry-run` < `ncurses-5.9.patch`)
+      end
+      ChangeDirectory(srcdir)
+      `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
       `make`
-      `make clean`
-      `pwd`
+      `make install`
   end
-end),ncurses)
+end), ncurses)
+
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"--with-tlib=ncurses"
 
 @BinDeps.install Dict([(:ncurses => :ncurses)])
 
