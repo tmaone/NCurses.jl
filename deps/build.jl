@@ -51,13 +51,11 @@ end
     # """ )
 end
 
-
-prefix = BinDeps.depsdir(ncurses)
-ncurses_install_name = "ncurses-5.9"
+const ncurses_install_name = "ncurses-5.9"
 srcdir = joinpath(BinDeps.depsdir(ncurses), ncurses_install_name)
-patch_dir   = joinpath(srcdir, "c++")
-patch_file = joinpath(patch_dir, "ncurses-5.9.patch")
-patch_file_src = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
+prefix = BinDeps.depsdir(ncurses)
+const patch_file_src = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
+
 
 provides(BuildProcess,
         (@build_steps begin
@@ -66,8 +64,9 @@ provides(BuildProcess,
           @build_steps begin
               ChangeDirectory(srcdir)
               @osx_only begin
-                ChangeDirectory(patch_dir)
-                run(download_cmd(patch_file_src, patch_file))
+                patch_path =joinpath(srcdir, "c++")
+                ChangeDirectory(patch_path)
+                run(download_cmd(patch_file_src, joinpath(patch_path, "ncurses-5.9.patch")))
                 ChangeDirectory(joinpath(srcdir, "c++"))
                 run(`patch -p1 --dry-run` < `ncurses-5.9.patch`)
               end
