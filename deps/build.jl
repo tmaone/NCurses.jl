@@ -39,55 +39,111 @@ end
 end
 
 # @osx_only begin
-  # if Pkg.installed("Homebrew") === nothing
-  #         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
-  # end
-  # using Homebrew
-  # provides( Homebrew.HB, "imagemagick", libwand, os = :Darwin, onload =
-  # """
-  # function __init__()
-  #     ENV["MAGICK_CONFIGURE_PATH"] = joinpath("$(Homebrew.prefix("imagemagick"))","lib","ImageMagick","config-Q16")
-  #     ENV["MAGICK_CODER_MODULE_PATH"] = joinpath("$(Homebrew.prefix("imagemagick"))", "lib","ImageMagick","modules-Q16","coders")
-  #     ENV["PATH"] *= ":" * joinpath("$(Homebrew.prefix("imagemagick"))", "bin")
-  # end
-  # """ )
+# if Pkg.installed("Homebrew") === nothing
+#         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
+# end
+# using Homebrew
+# provides( Homebrew.HB, "imagemagick", libwand, os = :Darwin, onload =
+# """
+# function __init__()
+#     ENV["MAGICK_CONFIGURE_PATH"] = joinpath("$(Homebrew.prefix("imagemagick"))","lib","ImageMagick","config-Q16")
+#     ENV["MAGICK_CODER_MODULE_PATH"] = joinpath("$(Homebrew.prefix("imagemagick"))", "lib","ImageMagick","modules-Q16","coders")
+#     ENV["PATH"] *= ":" * joinpath("$(Homebrew.prefix("imagemagick"))", "bin")
+# end
+# """ )
 # end
 
 @osx_only begin
 
-ncurses_install_name = "ncurses-5.9"
-prefix = BinDeps.depsdir(ncurses)
-srcdir = joinpath(prefix, "src", ncurses_install_name)
-patch_file_src = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
-# patch_path = joinpath(srcdir, "c++")
-# patch_file = joinpath(patch_path, "ncurses-5.9.patch")
+  # a=BinDeps.bindir(ncurses)
+  # b=BinDeps.builddir(ncurses)
+  # c=BinDeps.depsdir(ncurses)
+  # d=BinDeps.downloadsdir(ncurses)
+  # e=BinDeps.includedir(ncurses)
+  # f=BinDeps.libdir(ncurses)
+  # g=BinDeps.pkgdir(ncurses)
+  # # h=BinDeps.shlib_ext(ncurses)
+  # i=BinDeps.usrdir(ncurses)
+  # j=BinDeps.srcdir(ncurses)
+  # # k=BinDeps.prefix(ncurses)
+  #
+  # Base.println("$a \n $b \n $c \n $d \n $e \n $f \n $g  \n $i \n $j")
 
-provides(SimpleBuild,
-  (@build_steps begin
-    GetSources(ncurses)
+  prefix = BinDeps.usrdir(ncurses)
+  srcdir = BinDeps.srcdir(ncurses)
+  srcdirnc = joinpath(srcdir, "ncurses-5.9")
+  dldir = BinDeps.downloadsdir(ncurses)
+
+  lib_url = "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
+  lib_src_dl = joinpath(dldir, "ncurses-5.9.tar.gz")
+
+  patch_file_url = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
+  patch_file_dl = joinpath(dldir, "ncurses-5.9.patch")
+
+  target = joinpath(prefix,"lib/libncursestw.$(BinDeps.shlib_ext)")
+
+  provides(SimpleBuild,(
+
     @build_steps begin
-      ChangeDirectory(srcdir)
+
+      GetSources(ncurses)
+
+      FileDownloader(lib_url, lib_src_dl)
+      FileDownloader(patch_file_url, patch_file_dl)
+
+      CreateDirectory(srcdir, true)
+
+      FileUnpacker(lib_src_dl, srcdir, "ncurses-5.9")
+
       @build_steps begin
-        run(download_cmd(patch_file_src, joinpath(srcdir, "ncurses-5.9.patch")))
-        if success(`patch -p0 -N --dry-run --silent < ncurses-5.9.patch 2>/dev/null`)
-          `patch -p0 cursesf.h ncurses-5.9.patch`
-        end
+          ChangeDirectory(srcdirnc)
+          `patch -p0 c++/cursesf.h $patch_file_dl`
       end
+
       @build_steps begin
-        ChangeDirectory(srcdir)
-            `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
-          `make`
-          `make install`
+          ChangeDirectory(srcdirnc)
+          `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
       end
-    end
+
+      @build_steps begin
+        ChangeDirectory(srcdirnc)
+        MakeTargets(["install"])#`make install`
+      end
+
+      # end
+
+      # println(pwd())
+      # @build_steps begin
+      #   ChangeDirectory(srcdir)
+      #   run(download_cmd(patch_file_src, joinpath(srcdir, "ncurses-5.9.patch")))
+      #   `patch -p0 c++/cursesf.h ncurses-5.9.patch`
+      # end
   end), ncurses, os = :Darwin)
 end
+
+# `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
+# `make`
+# `make install`
+# end
+#   @build_steps begin
+#
+#     @build_steps begin
+#       run(download_cmd(patch_file_src, joinpath(srcdir, "ncurses-5.9.patch")))
+#     end
+#     @build_steps begin
+#       ChangeDirectory(srcdir)
+#           `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
+#         `make`
+#         `make install`
+#     end
+#   end
+
 # @build_steps begin
-  # ChangeDirectory(patch_path)
-  # @build_steps begin
-    #
-    # `patch -p1 --dry-run` < `ncurses-5.9.patch`
-  # end
+# ChangeDirectory(patch_path)
+# @build_steps begin
+#
+# `patch -p1 --dry-run` < `ncurses-5.9.patch`
+# end
 # end
 # @osx_only begin
 #   patch_path = joinpath(srcdir, "c++")
