@@ -43,7 +43,7 @@ end
 #         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
 # end
 # using Homebrew
-# provides( Homebrew.HB, "imagemagick", libwand, os = :Darwin, onload =
+# provides( Homebrew.HB, "ncurses", ncurses, os = :Darwin, onload =
 # """
 # function __init__()
 #     ENV["MAGICK_CONFIGURE_PATH"] = joinpath("$(Homebrew.prefix("imagemagick"))","lib","ImageMagick","config-Q16")
@@ -54,20 +54,6 @@ end
 # end
 
 @osx_only begin
-
-  # a=BinDeps.bindir(ncurses)
-  # b=BinDeps.builddir(ncurses)
-  # c=BinDeps.depsdir(ncurses)
-  # d=BinDeps.downloadsdir(ncurses)
-  # e=BinDeps.includedir(ncurses)
-  # f=BinDeps.libdir(ncurses)
-  # g=BinDeps.pkgdir(ncurses)
-  # # h=BinDeps.shlib_ext(ncurses)
-  # i=BinDeps.usrdir(ncurses)
-  # j=BinDeps.srcdir(ncurses)
-  # # k=BinDeps.prefix(ncurses)
-  #
-  # Base.println("$a \n $b \n $c \n $d \n $e \n $f \n $g  \n $i \n $j")
 
   prefix = BinDeps.usrdir(ncurses)
   srcdir = BinDeps.srcdir(ncurses)
@@ -110,72 +96,8 @@ end
         MakeTargets(["install"])#`make install`
       end
 
-      # end
-
-      # println(pwd())
-      # @build_steps begin
-      #   ChangeDirectory(srcdir)
-      #   run(download_cmd(patch_file_src, joinpath(srcdir, "ncurses-5.9.patch")))
-      #   `patch -p0 c++/cursesf.h ncurses-5.9.patch`
-      # end
   end), ncurses, os = :Darwin)
 end
-
-# `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
-# `make`
-# `make install`
-# end
-#   @build_steps begin
-#
-#     @build_steps begin
-#       run(download_cmd(patch_file_src, joinpath(srcdir, "ncurses-5.9.patch")))
-#     end
-#     @build_steps begin
-#       ChangeDirectory(srcdir)
-#           `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
-#         `make`
-#         `make install`
-#     end
-#   end
-
-# @build_steps begin
-# ChangeDirectory(patch_path)
-# @build_steps begin
-#
-# `patch -p1 --dry-run` < `ncurses-5.9.patch`
-# end
-# end
-# @osx_only begin
-#   patch_path = joinpath(srcdir, "c++")
-#   ChangeDirectory(patch_path)
-#   run(download_cmd(patch_file_src, joinpath(patch_path, "ncurses-5.9.patch")))
-#   ChangeDirectory(joinpath(srcdir, "c++"))
-#   run(`patch -p1 --dry-run` < `ncurses-5.9.patch`)
-# end
-
-# GetSources(ncurses)
-#
-# ChangeDirectory(srcdir)
-#     `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse --with-tlib=ncurses`
-#   `make`
-#   `make install`
-# @osx_only begin
-#   patch_path = joinpath(srcdir, "c++")
-#   ChangeDirectory(patch_path)
-#   run(download_cmd(patch_file_src, joinpath(patch_path, "ncurses-5.9.patch")))
-#   ChangeDirectory(joinpath(srcdir, "c++"))
-#   run(`patch -p1 --dry-run` < `ncurses-5.9.patch`)
-# end
-#
-# provides(SimpleBuild,
-#     (@build_steps begin
-#         GetSources(zlib)
-#         @build_steps begin
-#             ChangeDirectory(joinpath(BinDeps.depsdir(zlib),"src","zlib-1.2.7"))
-#             MakeTargets(["-fwin32/Makefile.gcc"])
-#             #MakeTargets(["-fwin32/Makefile.gcc","DESTDIR=../../usr/","INCLUDE_PATH=include","LIBRARY_PATH=lib","SHARED_MODE=1","install"])
-#         end
-#     end),zlib, os = :Windows)
 
 @BinDeps.install Dict([(:ncurses => :ncurses)])
 
@@ -185,7 +107,7 @@ if isdefined(:__init__)
   __init__()
 end
 nc_ver = ccall((:curses_version, ncurses), Ptr{UInt8}, ())
-if nc_ver == C_NULL
+if nc_ver != C_NULL
   ver_str = split(bytestring(nc_ver), ' ')
   ver_str_name = ver_str[1]
   ver_str_num  = ver_str[2]
@@ -196,16 +118,24 @@ if nc_ver == C_NULL
   vstr = string("v\"", join([major,minor,build], '.'), "\"")
   open(joinpath(dirname(@__FILE__),"versioninfo.jl"), "w") do file
   write(file, "const libversion = $vstr\n")
+  NCURSES_VERSION = vstr
+  println("NCurses Library Found, Version [$(vstr)")
 end
-NCURSES_VERSION = vstr
-println("NCurses Library Found, Version [$(vstr)")
 end
 
-# vstr = string("v\"", join(split(bytestring(p), ',')[1:3], '.'), "\"")
-# open(joinpath(dirname(@__FILE__),"versioninfo.jl"), "w") do file
-# write(file, "const libversion = $vstr\n")
-# end
-end
+  # a=BinDeps.bindir(ncurses)
+  # b=BinDeps.builddir(ncurses)
+  # c=BinDeps.depsdir(ncurses)
+  # d=BinDeps.downloadsdir(ncurses)
+  # e=BinDeps.includedir(ncurses)
+  # f=BinDeps.libdir(ncurses)
+  # g=BinDeps.pkgdir(ncurses)
+  # # h=BinDeps.shlib_ext(ncurses)
+  # i=BinDeps.usrdir(ncurses)
+  # j=BinDeps.srcdir(ncurses)
+  # # k=BinDeps.prefix(ncurses)
+  #
+  # Base.println("$a \n $b \n $c \n $d \n $e \n $f \n $g  \n $i \n $j")
 
 # prefix=joinpath(BinDeps.depsdir(libncurses),"usr")
 # ncurses-5.9

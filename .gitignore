@@ -2,3 +2,6 @@
 *.jl.mem
 deps/versioninfo.jl
 deps/deps.jl
+deps/downloads
+deps/src
+deps/usr
