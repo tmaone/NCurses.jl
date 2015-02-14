@@ -123,44 +123,4 @@ if nc_ver != C_NULL
 end
 end
 
-  # a=BinDeps.bindir(ncurses)
-  # b=BinDeps.builddir(ncurses)
-  # c=BinDeps.depsdir(ncurses)
-  # d=BinDeps.downloadsdir(ncurses)
-  # e=BinDeps.includedir(ncurses)
-  # f=BinDeps.libdir(ncurses)
-  # g=BinDeps.pkgdir(ncurses)
-  # # h=BinDeps.shlib_ext(ncurses)
-  # i=BinDeps.usrdir(ncurses)
-  # j=BinDeps.srcdir(ncurses)
-  # # k=BinDeps.prefix(ncurses)
-  #
-  # Base.println("$a \n $b \n $c \n $d \n $e \n $f \n $g  \n $i \n $j")
-
-# prefix=joinpath(BinDeps.depsdir(libncurses),"usr")
-# ncurses-5.9
-# ncurses_src_dir = joinpath(BinDeps.depsdir(libncurses),"src","ncurses-$ncurses_version")
-# # ncurses_build_dir = joinpath(BinDeps.depsdir(libncurses),"build","libpng-$png_version")
-#
-# prefix=joinpath(BinDeps.depsdir(libpng),"usr")
-# uprefix = replace(replace(prefix,"\\","/"),"C:/","/c/")
-# pngsrcdir = joinpath(BinDeps.depsdir(libpng),"src","ncurses-$ncurses_version")
-# pngbuilddir = joinpath(BinDeps.depsdir(libpng),"builds","libpng-$png_version")
-# provides(BuildProcess,
-#   (@build_steps begin
-#     GetSources(libpng)
-#     CreateDirectory(pngbuilddir)
-#     @build_steps begin
-#       ChangeDirectory(pngbuilddir)
-#       FileRule(joinpath(prefix,"lib","libpng15.dll"),@build_steps begin
-#         `cmake -DCMAKE_INSTALL_PREFIX="$prefix" -G"MSYS Makefiles" $pngsrcdir`
-#         `make`
-#         `cp libpng*.dll $prefix/lib`
-#         `cp libpng*.a $prefix/lib`
-#         `cp libpng*.pc $prefix/lib/pkgconfig`
-#         `cp pnglibconf.h $prefix/include`
-#         `cp $pngsrcdir/png.h $prefix/include`
-#         `cp $pngsrcdir/pngconf.h $prefix/include`
-#       end)
-#     end
-#   end),libpng, os = :Windows)
+end
