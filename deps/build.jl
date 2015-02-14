@@ -1,5 +1,4 @@
 using BinDeps
-
 @BinDeps.setup
 
 const ncurses_install_version = "5.9"
@@ -10,9 +9,7 @@ options = [""]
 extensions = ["", ".a", ".so.5", ".dylib"]
 aliases = vec(libnames.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
-deps = [
-ncurses = library_dependency("ncurses", aliases = aliases)
-]
+deps = [ ncurses = library_dependency("ncurses", aliases = aliases) ]
 
 provides(Sources, {
 URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz") => ncurses
@@ -97,16 +94,21 @@ end
       end
 
   end), ncurses, os = :Darwin)
+
 end
 
 @BinDeps.install Dict([(:ncurses => :ncurses)])
 
 module CheckVersion
+
 include("deps.jl")
+
 if isdefined(:__init__)
   __init__()
 end
+
 nc_ver = ccall((:curses_version, ncurses), Ptr{UInt8}, ())
+
 if nc_ver != C_NULL
   ver_str = split(bytestring(nc_ver), ' ')
   ver_str_name = ver_str[1]
@@ -119,8 +121,9 @@ if nc_ver != C_NULL
   open(joinpath(dirname(@__FILE__),"versioninfo.jl"), "w") do file
   write(file, "const libversion = $vstr\n")
   NCURSES_VERSION = vstr
-  println("NCurses Library Found, Version [$(vstr)")
-end
+  println("NCurses Library Found, Version [$(vstr)]")
 end
 
 end
+
+# end

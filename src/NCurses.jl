@@ -1,4 +1,9 @@
+export NCurses
 module NCurses
+
+using BinDeps
+
+@BinDeps.load_dependencies [:ncurses]
 
 const COLOR_BLACK   = 0
 const COLOR_RED     = 1
@@ -12,6 +17,7 @@ const COLOR_WHITE   = 7
 export COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE
 
 chtype = UInt8
+export chtype
 
 COLOR_PAIR( n ) = NCURSES_BITS(n, 0)
 export COLOR_PAIR
@@ -54,39 +60,6 @@ const BUTTON4_PRESSED = NCURSES_MOUSE_MASK( 4, NCURSES_BUTTON_PRESSED )
 const REPORT_MOUSE_POSITION = NCURSES_MOUSE_MASK( 5, 8 ) # NCURSES_MOUSE_VERSION=1
 
 export NCURSES_MOUSE_MASK, NCURSES_BUTTON_PRESSED, BUTTON1_PRESSED, BUTTON2_PRESSED, BUTTON3_PRESSED, BUTTON4_PRESSED, REPORT_MOUSE_POSITION
-
-end # module
-
-module nc
-
-
-add_lib(Library(:ncurses,"libncursestw"))
-add_lib(Library(:form, "libformtw"))
-add_lib(Library(:menu, "libmenutw"))
-add_lib(Library(:panel, "libpaneltw"))
-add_lib(Library(:cdk, "libcdk.dylib.6.0.4"))
-
-
-
-
-
-
-
-
-
-
-
-ncurses = get_lib(:ncurses)
-panel = get_lib(:panel)
-form = get_lib(:form)
-menu = get_lib(:menu)
-cdk = get_lib(:cdk)
-
-export ncurses, panel, form, menu
-
-NCURSES_VERSION = ""
-
-export NCURSES_VERSION
 
 function get_nc_version()
     nc_ver = ccall( dlsym( ncurses, :curses_version ), Ptr{UInt8}, ())
@@ -429,3 +402,23 @@ end
 export initscr, endwin, isendwin, newwin, subwin, delwin, derwin, werase, erase, refresh, mvwaddch, wclear, mvwprintw, touchwin, wmove, box, wrefresh, wgetch, nocbreak, keypad, nodelay, noecho, cbreak, echo, raw, noraw, timeout, notimeout, mvwin, getwinbegyx, beep, wtimeout, flash, getwinmaxyx, is_term_resized, wresize, getcuryx, start_color, init_pair, init_color, has_colors, wattroff, wattron, wattrset, wbkgdset, wbkgd, curs_set, has_mouse, mousemask, mouseinterval, getmouse, mouseByteString, baudrate, clearok, immedok, napms, update_panels, doupdate, new_panel, top_panel, bottom_panel, hide_panel, move_panel, del_panel, show_panel, panel_hidden, replace_panel, set_panel_userptr
 
 end
+
+# end # module
+#
+# module nc
+
+# add_lib(Library(:ncurses,"libncursestw"))
+# add_lib(Library(:form, "libformtw"))
+# add_lib(Library(:menu, "libmenutw"))
+# add_lib(Library(:panel, "libpaneltw"))
+# add_lib(Library(:cdk, "libcdk.dylib.6.0.4"))
+
+# ncurses = get_lib(:ncurses)
+# panel = get_lib(:panel)
+# form = get_lib(:form)
+# menu = get_lib(:menu)
+# cdk = get_lib(:cdk)
+
+# NCURSES_VERSION = ""
+
+# export ncurses, panel, form, menu, NCURSES_VERSION
