@@ -3,7 +3,7 @@ using BinDeps
 
 const ncurses_install_version = "5.9"
 
-libnames = ["libncursess", "libncursesw", "libncursestw"]
+libnames = ["libncursestw", "libncursesw" , "libncurses"]
 suffixes = ["", "-5.9", "5.9", "5.4", "6", ".6."]
 options = [""]
 extensions = ["", ".a", ".so.5", ".dylib"]

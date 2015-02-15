@@ -68,6 +68,11 @@ function get_nc_version()
     end
 end
 
+function __init__()
+  get_nc_version()
+  info("NCurses Ver: $(NCURSES_VERSION)")
+end
+
 function initscr()
     ccall( dlsym( ncurses, :initscr), Ptr{Void}, () )
 end
