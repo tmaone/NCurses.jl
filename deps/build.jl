@@ -3,16 +3,21 @@ using BinDeps
 
 const ncurses_install_version = "5.9"
 
-libnames = ["libncursestw", "libncursesw" , "libncurses"]
+lid_ncurses_names = ["libcurses", "libncurses"]
+lid_ncursestw_names = ["libncursetw", "libncursest", "libncursesw"]
+
 suffixes = ["", "-5.9", "5.9", "5.4", "6", ".6."]
 options = [""]
 extensions = ["", ".a", ".so.5", ".dylib"]
-aliases = vec(libnames.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
-deps = [ ncurses = library_dependency("ncurses", aliases = aliases) ]
+aliases_ncurses = vec(lid_ncurses_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
-provides(Sources, {
-URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_install_version).tar.gz") => ncurses
+aliases_ncursestw = vec(lid_ncursestw_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
+
+deps = [ncurses = library_dependency("ncurses", aliases = aliases_ncurses),
+        ncursestw = library_dependency("ncursesw", aliases = aliases_ncursestw)]
+
+provides(Sources, {URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_install_version).tar.gz") => ncurses,URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_install_version).tar.gz") => ncursestw
 })
 
 ncurses_home = get(ENV, "NCURSES_HOME", "") # If NCURSES_HOME is defined, add to library search path
@@ -52,10 +57,10 @@ end
 
 @osx_only begin # but try this custom build method (replicates brew formula patch) during initial module development
 
-  prefix = BinDeps.usrdir(ncurses)
-  srcdir = BinDeps.srcdir(ncurses)
+  prefix = BinDeps.usrdir(ncursestw)
+  srcdir = BinDeps.srcdir(ncursestw)
   srcdirnc = joinpath(srcdir, "ncurses-5.9")
-  dldir = BinDeps.downloadsdir(ncurses)
+  dldir = BinDeps.downloadsdir(ncursestw)
 
   lib_url = "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
   lib_src_dl = joinpath(dldir, "ncurses-5.9.tar.gz")
@@ -67,7 +72,7 @@ end
 
   provides(SimpleBuild,(
     @build_steps begin
-      GetSources(ncurses)
+      GetSources(ncursestw)
       FileDownloader(lib_url, lib_src_dl)
       FileDownloader(patch_file_url, patch_file_dl)
       CreateDirectory(srcdir, true)
@@ -84,10 +89,10 @@ end
         ChangeDirectory(srcdirnc)
         MakeTargets(["install"]) #`make install`
       end
-  end), ncurses, os = :Darwin)
+  end), ncursestw, os = :Darwin)
 end
 
-@BinDeps.install Dict([(:ncurses => :ncurses)])
+@BinDeps.install Dict([(:ncursestw => :ncursestw)])
 
 # module CheckVersion
 #
