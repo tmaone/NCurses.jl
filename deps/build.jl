@@ -4,7 +4,7 @@ using BinDeps
 const ncurses_install_version = "5.9"
 
 lid_ncurses_names = ["libcurses", "libncurses"]
-lid_ncursestw_names = ["libncursetw", "libncursest", "libncursesw"]
+lid_ncursestw_names = ["libncursestw", "libncursest", "libncursesw"]
 
 suffixes = ["", "-5.9", "5.9", "5.4", "6", ".6."]
 options = [""]
@@ -41,18 +41,11 @@ end
 end
 
 @osx_only begin # if library functionality is satisfied using core calls then use classic HB package for ncurses
-# if Pkg.installed("Homebrew") === nothing
-#         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
-# end
-# using Homebrew
-# provides( Homebrew.HB, "ncurses", ncurses, os = :Darwin, onload =
-# """
-# function __init__()
-#     ENV["MAGICK_CONFIGURE_PATH"] = joinpath("$(Homebrew.prefix("imagemagick"))","lib","ImageMagick","config-Q16")
-#     ENV["MAGICK_CODER_MODULE_PATH"] = joinpath("$(Homebrew.prefix("imagemagick"))", "lib","ImageMagick","modules-Q16","coders")
-#     ENV["PATH"] *= ":" * joinpath("$(Homebrew.prefix("imagemagick"))", "bin")
-# end
-# """ )
+if Pkg.installed("Homebrew") === nothing
+        error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
+end
+using Homebrew
+provides( Homebrew.HB, "ncurses", ncurses, os = :Darwin )
 end
 
 @osx_only begin # but try this custom build method (replicates brew formula patch) during initial module development
