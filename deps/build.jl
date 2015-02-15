@@ -12,7 +12,7 @@ aliases = vec(libnames.*transpose(suffixes).*reshape(options,(1,1,length(options
 deps = [ ncurses = library_dependency("ncurses", aliases = aliases) ]
 
 provides(Sources, {
-URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz") => ncurses
+URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_install_version).tar.gz") => ncurses
 })
 
 ncurses_home = get(ENV, "NCURSES_HOME", "") # If MAGICK_HOME is defined, add to library search path
