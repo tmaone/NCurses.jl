@@ -15,14 +15,14 @@ provides(Sources, {
 URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_install_version).tar.gz") => ncurses
 })
 
-ncurses_home = get(ENV, "NCURSES_HOME", "") # If MAGICK_HOME is defined, add to library search path
+ncurses_home = get(ENV, "NCURSES_HOME", "") # If NCURSES_HOME is defined, add to library search path
 
 if !isempty(ncurses_home)
   push!(DL_LOAD_PATH, ncurses_home)
   push!(DL_LOAD_PATH, joinpath(ncurses_home,"lib"))
 end
 
-@linux_only begin
+@linux_only begin # TODO: Not sure
   provides(AptGet, "ncurses", ncurses)
   provides(AptGet, "ncurses", ncurses)
   provides(Pacman, "ncurses", ncurses)
@@ -31,11 +31,11 @@ end
 
 @windows_only begin
   # TODO: remove me when upstream is fixed
+  const OS_ARCH = (WORD_SIZE == 64) ? "x64" : "x86"
   error("Not supported")
-  # const OS_ARCH = (WORD_SIZE == 64) ? "x64" : "x86"
 end
 
-@osx_only begin
+@osx_only begin # if library functionality is satisfied using core calls then use classic HB package for ncurses
 # if Pkg.installed("Homebrew") === nothing
 #         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
 # end
@@ -50,7 +50,7 @@ end
 # """ )
 end
 
-@osx_only begin
+@osx_only begin # but try this custom build method (replicates brew formula patch) during initial module development
 
   prefix = BinDeps.usrdir(ncurses)
   srcdir = BinDeps.srcdir(ncurses)
