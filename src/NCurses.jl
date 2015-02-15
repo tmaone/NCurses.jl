@@ -3,7 +3,7 @@ module NCurses
 
 using BinDeps
 
-@BinDeps.load_dependencies [:ncurses]
+@BinDeps.load_dependencies [:ncurses => :ncurses]
 
 const COLOR_BLACK   = 0
 const COLOR_RED     = 1
