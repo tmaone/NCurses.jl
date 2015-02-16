@@ -66,7 +66,6 @@ ncursestw = library_dependency("ncursestw", aliases = aliases_ncursestw)
 provides(Sources, URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-$(ncurses_version)-$(nc_patch).tgz"), SHA="c88fecbf91b94faa1de7dc3192ad2fd227eeed1648c5daa736119b9a7ff08e07", ncursestw)
 
 prefix = BinDeps.usrdir(ncursestw)
-# builddir = prefix
 
 provides( BuildProcess,
           Autotools(
@@ -105,12 +104,14 @@ provides( BuildProcess,
                               ],
                               force_rebuild = true,
                               prefix = prefix
-                              # builddir = builddir
           ), ncursestw)
 
-          # /Users/deusx/devel/NCurses.jl/deps/src/ncurses-5.9-20150214/configure --prefix=/Users/deusx/devel/NCurses.jl/deps/usr --without-ada --without-cxx --without-cxx-binding --without-manpages --enable-dependency-linking --enable-sigwinch --enable-symlinks --enable-rpath --enable-widec --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-term-driver --enable-interop ' --enable-reentrant' --with-pthread ' --enable-termcap' --with-sysmouse --enable-sp-funcs --enable-term-driver --enable-tcap-names --prefix=/Users/deusx/devel/NCurses.jl/deps/usr
-
 @BinDeps.install Dict([(:ncurses => :ncurses),(:ncursestw => :ncursestw)])
+
+
+
+# Old build steps, will delete soon
+
 # prefix = BinDeps.usrdir(ncursestw)
 # srcdir = BinDeps.srcdir(ncursestw)
 #   srcdir = BinDeps.srcdir(ncursestw)
@@ -146,27 +147,9 @@ provides( BuildProcess,
 #       end
 #   end), ncursestw, os = :Darwin)
 
-#
-# @unix_only begin
-#
-#     ncurses = library_dependency("ncurses", aliases = aliases_ncurses)
-#
-#
-#     @linux_only begin
-#
-#     end
-#
-#     @osx_only begin
-#
-#     end
-#
-# end
-
-
-
 # ncurses = library_dependency("ncurses", aliases = aliases_ncurses)
 # ncursestw = library_dependency("ncursestw", aliases = aliases_ncursestw)
-# /
+
 # provides(Sources, {URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-5.9-20150214.tgz") => ncursestw})
 #
 # ncurses_home = get(ENV, "NCURSES_HOME", "") # If NCURSES_HOME is defined, add to library search path
@@ -175,9 +158,7 @@ provides( BuildProcess,
 #   push!(DL_LOAD_PATH, ncurses_home)
 #   push!(DL_LOAD_PATH, joinpath(ncurses_home,"lib"))
 # end
-#
-#
-#
+
 # @linux_only begin # TODO: Not sure, check if they are valid
 #   provides(AptGet, "ncurses", ncurses)
 #   provides(AptGet, "ncurses", ncurses)
