@@ -66,13 +66,16 @@ ncursestw = library_dependency("ncursestw", aliases = aliases_ncursestw)
 provides(Sources, URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-$(ncurses_version)-$(nc_patch).tgz"), SHA="c88fecbf91b94faa1de7dc3192ad2fd227eeed1648c5daa736119b9a7ff08e07", ncursestw)
 
 prefix = BinDeps.usrdir(ncursestw)
+# builddir = prefix
 
 provides( BuildProcess,
-          Autotools(libtarget = [ "libncursestw."*shlib_ext,
-                                  "libformtw."*shlib_ext,
-                                  "libmenutw."*shlib_ext,
-                                  "libpaneltw."*shlib_ext ],
-            configure_options = [ "--prefix=$(prefix)",
+          Autotools(
+          libtarget = [ "lib/libncursestw.$(BinDeps.shlib_ext)",
+                        "lib/libformtw.$(BinDeps.shlib_ext)",
+                        "lib/libmenutw.$(BinDeps.shlib_ext)",
+                        "lib/libpaneltw.$(BinDeps.shlib_ext)" ],
+            configure_options = [
+                                "--prefix=$(prefix)",
                                 "--without-ada",
                                 "--without-cxx",
                                 "--without-cxx-binding",
@@ -99,13 +102,11 @@ provides( BuildProcess,
                                 "--enable-sp-funcs",
                                 "--enable-term-driver",
                                 "--enable-tcap-names"
-                              ]
+                              ],
+                              force_rebuild = true,
+                              prefix = prefix
+                              # builddir = builddir
           ), ncursestw)
-        #
-        #   installed_libpath::Vector{ByteString} # The library is considered installed if any of these paths exist
-        # config_status_dir::String
-        #   force_rebuild::Bool
-        #   env
 
           # /Users/deusx/devel/NCurses.jl/deps/src/ncurses-5.9-20150214/configure --prefix=/Users/deusx/devel/NCurses.jl/deps/usr --without-ada --without-cxx --without-cxx-binding --without-manpages --enable-dependency-linking --enable-sigwinch --enable-symlinks --enable-rpath --enable-widec --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-term-driver --enable-interop ' --enable-reentrant' --with-pthread ' --enable-termcap' --with-sysmouse --enable-sp-funcs --enable-term-driver --enable-tcap-names --prefix=/Users/deusx/devel/NCurses.jl/deps/usr
 
