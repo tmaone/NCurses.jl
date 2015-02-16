@@ -35,8 +35,8 @@ end
 end
 
 @windows_only begin
-  # TODO: remove me when upstream is fixed
   const OS_ARCH = (WORD_SIZE == 64) ? "x64" : "x86"
+  # TODO: remove me when upstream is fixed
   error("Not supported")
 end
 
@@ -46,41 +46,6 @@ end
 # end
 # using Homebrew
 # provides( Homebrew.HB, "ncurses", ncurses, os = :Darwin )
-
-prefix = BinDeps.usrdir(ncursestw)
-srcdir = BinDeps.srcdir(ncursestw)
-srcdirnc = joinpath(srcdir, "ncurses-5.9")
-dldir = BinDeps.downloadsdir(ncursestw)
-
-lib_url = "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
-lib_src_dl = joinpath(dldir, "ncurses-5.9.tar.gz")
-
-patch_file_url = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
-patch_file_dl = joinpath(dldir, "ncurses-5.9.patch")
-
-target = joinpath(prefix,"lib/libncursestw.$(BinDeps.shlib_ext)")
-
-provides(SimpleBuild,(
-  @build_steps begin
-    GetSources(ncursestw)
-    FileDownloader(lib_url, lib_src_dl)
-    FileDownloader(patch_file_url, patch_file_dl)
-    CreateDirectory(srcdir, true)
-    FileUnpacker(lib_src_dl, srcdir, "ncurses-5.9")
-    @build_steps begin
-        ChangeDirectory(srcdirnc)
-        `patch -p0 c++/cursesf.h $patch_file_dl`
-    end
-    @build_steps begin
-        ChangeDirectory(srcdirnc)
-        `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse`
-    end
-    @build_steps begin
-      ChangeDirectory(srcdirnc)
-      MakeTargets(["install"]) #`make install`
-    end
-end), ncursestw, os = :Darwin)
-
 end
 
 @osx_only begin # but try this custom build method (replicates brew formula patch) during initial module development
