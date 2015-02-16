@@ -30,7 +30,7 @@ aliases_ncursestw = vec(lib_ncursestw_names.*transpose(suffixes).*reshape(option
 
 if NCURSES_MODE == "tw" || NCURSES_MODE == "w" || NCURSES_MODE == "t"
 
-  info("NCurses-extra library enabled. [($NCURSES_MODE)]")
+  info("NCurses-extra library enabled. [$NCURSES_MODE]")
   # Now we define build steps for our tuned version. The idea
   # is to start with one build target, with os differentiation coming
   # to place upon necessity
@@ -79,7 +79,6 @@ if NCURSES_MODE == "tw" || NCURSES_MODE == "w" || NCURSES_MODE == "t"
             """
             function __init__()
                 ENV["NCURSES_MODE"] = "tw"
-                ENV["NCURSES_VERSION"] = "$(ncursestw_version)"
             end
             """)
   @BinDeps.install Dict([(:ncurses => :ncurses)])

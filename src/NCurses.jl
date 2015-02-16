@@ -1,12 +1,18 @@
 export NCurses
+
 module NCurses
 
 using BinDeps
 
-# NCURSES_MODE = '' || nothing => default, system found version
-# NCURSES_MODE = 't' || 'w' || 'tw' => custom locally built version
+# loads "../deps/build.jl" and forces re-install of library
+# this explains why other modules prefer to load deps.jl instead.
+# @BinDeps.load_dependencies "../deps/deps.jl" [:ncurses]
 
-@BinDeps.load_dependencies "../deps/deps.jl" [:ncurses]
+if isfile(joinpath(Pkg.dir("NCurses"),"deps","deps.jl"))
+  include("../deps/deps.jl")
+else
+  error("NCurses not properly installed. Please run Pkg.build(\"NCurses\")")
+end
 
 const COLOR_BLACK   = 0
 const COLOR_RED     = 1
@@ -64,8 +70,8 @@ const REPORT_MOUSE_POSITION = NCURSES_MOUSE_MASK( 5, 8 ) # NCURSES_MOUSE_VERSION
 
 export NCURSES_MOUSE_MASK, NCURSES_BUTTON_PRESSED, BUTTON1_PRESSED, BUTTON2_PRESSED, BUTTON3_PRESSED, BUTTON4_PRESSED, REPORT_MOUSE_POSITION
 
-function get_nc_version()
-    nc_ver = ccall( dlsym( ncurses, :curses_version ), Ptr{UInt8}, ())
+function version()
+    nc_ver = ccall((:curses_version, ncurses) , Ptr{UInt8}, ())
     if nc_ver != C_NULL
         NCURSES_VERSION = bytestring(nc_ver)
     end
@@ -73,236 +79,235 @@ function get_nc_version()
 end
 
 function __init__()
-  # get_nc_version()
-  # info("NCurses Ver: $(NCURSES_VERSION)")
+  version()
 end
 
 function initscr()
-    ccall( dlsym( ncurses, :initscr), Ptr{Void}, () )
+    ccall((:initscr, ncurses ), Ptr{Void}, () )
 end
 
 function endwin()
-    ccall( dlsym( ncurses, :endwin), Int, () )
+    ccall((:endwin, ncurses), Int, () )
 end
 
 function isendwin()
-    ccall( dlsym( ncurses, :isendwin), Bool, () )
+    ccall((:isendwin, ncurses), Bool, () )
 end
 
 function newwin( lines::Int, cols::Int, origy::Int, origx::Int )
-    ccall( dlsym( ncurses, :newwin ), Ptr{Void}, ( Int, Int, Int, Int ),
+    ccall((:newwin, ncurses), Ptr{Void}, ( Int, Int, Int, Int ),
         lines, cols, origy, origx )
 end
 
-function subwin( win::Ptr{Void}, lines::Int, cols::Int, origy::Int, origx::Int )
-    ccall( dlsym( ncurses, :subwin ), Ptr{Void}, ( Ptr{Void}, Int, Int, Int, Int ),
+function subwin(win::Ptr{Void}, lines::Int, cols::Int, origy::Int, origx::Int )
+    ccall((:subwin, ncurse ), Ptr{Void}, ( Ptr{Void}, Int, Int, Int, Int ),
         win, lines, cols, origy, origx )
 end
 
 function derwin( win, lines::Int, cols::Int, origy::Int, origx::Int )
-    ccall( dlsym( ncurses, :derwin ), Ptr{Void}, ( Ptr{Void}, Int, Int, Int, Int ),
+    ccall((:derwin, ncurses ), Ptr{Void}, ( Ptr{Void}, Int, Int, Int, Int ),
         win, lines, cols, origy, origx )
 end
 
 function delwin( win::Ptr{Void} )
-    ccall( dlsym( ncurses, :delwin ), Void, ( Ptr{Void}, ), win )
+    ccall((:delwin, ncurses ), Void, ( Ptr{Void}, ), win )
 end
 
 function mvwaddch( win, y::Int, x::Int, c )
-    ccall( dlsym( ncurses, :mvwaddch), Void,
+    ccall((:mvwaddch, ncurses), Void,
         ( Ptr{Void}, Int, Int, Int ), win, y, x, c )
 end
 
 function mvwprintw( win::Ptr{Void}, row::Int, height::Int, fmt::String, str::String )
-    ccall( dlsym( ncurses, :mvwprintw), Void,
+    ccall((:mvwprintw, ncurses), Void,
         ( Ptr{Void}, Int, Int, Ptr{Uint8}, Ptr{Uint8}),
         win, row, height, fmt, str )
 end
 
 function printw( str::String )
-    ccall( dlsym( ncurses, :printw), Void, (Ptr{Uint8},), str )
+    ccall((:printw, ncurses, ncurses), Void, (Ptr{Uint8},), str )
 end
 
 function mvprintw( row::Int, height::Int, str::String )
-    ccall( dlsym( ncurses, :printw), Void, (Int, Int, Ptr{Uint8}), row, height, str )
+    ccall((:printw, ncurses), Void, (Int, Int, Ptr{Uint8}), row, height, str )
 end
 
 function wprintw( win::Ptr{Void} , str::String )
-    ccall( dlsym( ncurses, :printw), Void, (Ptr{Void}, Ptr{Uint8}), win, str )
+    ccall((:printw, ncurses), Void, (Ptr{Void}, Ptr{Uint8}), win, str )
 end
 
 function wmove( win, y::Int, x::Int )
-    ccall( dlsym( ncurses, :wmove), Int, ( Ptr{Void}, Int, Int ), win, y, x )
+    ccall((:wmove, ncurses), Int, ( Ptr{Void}, Int, Int ), win, y, x )
 end
 
 function wrefresh( win::Ptr{Void} )
-    ccall( dlsym( ncurses, :wrefresh ), Void, ( Ptr{Void}, ), win )
+    ccall((:wrefresh, ncurses ), Void, ( Ptr{Void}, ), win )
 end
 
 function touchwin( win::Ptr{Void} )
-    ccall( dlsym( ncurses, :touchwin ), Void, ( Ptr{Void}, ), win )
+    ccall((:touchwin, ncurses ), Void, ( Ptr{Void}, ), win )
 end
 
 function refresh()
-    ccall( dlsym( ncurses, :refresh ), Void, ( ) )
+    ccall((:refresh, ncurses ), Void, ( ) )
 end
 
 function erase()
-    ccall( dlsym( ncurses, :erase ), Void, () )
+    ccall((:erase, ncurses ), Void, () )
 end
 
 function werase( win::Ptr{Void} )
-    ccall( dlsym( ncurses, :werase ), Void, (Ptr{Void},), win )
+    ccall((:werase, ncurses ), Void, (Ptr{Void},), win )
 end
 
 function wclear( win::Ptr{Void} )
-    ccall( dlsym( ncurses, :wclear ), Void, (Ptr{Void},), win )
+    ccall((:wclear, ncurses ), Void, (Ptr{Void},), win )
 end
 
 function box( win, vchr, hchr )
-    ccall( dlsym( ncurses, :box ), Void, (Ptr{Void}, Char, Char), win, vchr, hchr )
+    ccall((:box, ncurses ), Void, (Ptr{Void}, Char, Char), win, vchr, hchr )
 end
 
 function wgetch( win::Ptr{Void } )
-    ccall( dlsym( ncurses, :wgetch ), Uint32, (Ptr{Void},), win )
+    ccall((:wgetch, ncurses ), Uint32, (Ptr{Void},), win )
 end
 
 function keypad( win, bf )
-    ccall( dlsym( ncurses, :keypad ), Int, (Ptr{Void}, Bool), win, bf )
+    ccall((:keypad, ncurses ), Int, (Ptr{Void}, Bool), win, bf )
 end
 
 function cbreak()
-    ccall( dlsym( ncurses, :cbreak), Void, ( ) )
+    ccall((:cbreak, ncurses), Void, ( ) )
 end
 
 function nocbreak()
-    ccall( dlsym( ncurses, :nocbreak), Void, ( ) )
+    ccall((:nocbreak, ncurses), Void, ( ) )
 end
 
 function echo()
-    ccall( dlsym( ncurses, :echo), Void, ( ) )
+    ccall((:echo, ncurses), Void, ( ) )
 end
 
 function noecho()
-    ccall( dlsym( ncurses, :noecho), Void, ( ) )
+    ccall((:noecho, ncurses), Void, ( ) )
 end
 
 function nodelay( win, bf )
-    ccall( dlsym( ncurses, :nodelay ), Int, (Ptr{Void}, Bool), win, bf )
+    ccall((:nodelay, ncurses ), Int, (Ptr{Void}, Bool), win, bf )
 end
 
 function raw()
-    ccall( dlsym( ncurses, :raw ), Int, () )
+    ccall((:raw, ncurses ), Int, () )
 end
 
 function noraw()
-    ccall( dlsym( ncurses, :noraw ), Int, () )
+    ccall((:noraw, ncurses ), Int, () )
 end
 
 function notimeout( win, bf )
-    ccall( dlsym( ncurses, :notimeout ), Int, (Ptr{Void}, Bool), win, bf )
+    ccall((:notimeout, ncurses ), Int, (Ptr{Void}, Bool), win, bf )
 end
 
 function timeout( delay::Int )
-    ccall( dlsym( ncurses, :timeout ), Void, (Int,), delay )
+    ccall((:timeout, ncurses ), Void, (Int,), delay )
 end
 
 function wtimeout( win, delay::Int )
-    ccall( dlsym( ncurses, :wtimeout ), Void, (Ptr{Void}, Int), win, delay )
+    ccall((:wtimeout, ncurses ), Void, (Ptr{Void}, Int), win, delay )
 end
 
 # not standard but convenient
 function getwinmaxyx( win )
-    maxy = ccall( dlsym(ncurses, :getmaxy), Int, ( Ptr{Void}, ), win )
-    maxx = ccall( dlsym(ncurses, :getmaxx), Int, ( Ptr{Void}, ), win )
+    maxy = ccall((:getmaxy, ncurses), Int, ( Ptr{Void}, ), win )
+    maxx = ccall((:getmaxx, ncurses), Int, ( Ptr{Void}, ), win )
     ( maxy, maxx )
 end
 
 function getwinbegyx( win )
-    maxy = ccall( dlsym(ncurses, :getbegy), Int, ( Ptr{Void}, ), win )
-    maxx = ccall( dlsym(ncurses, :getbegx), Int, ( Ptr{Void}, ), win )
+    maxy = ccall((:getbegy, ncurses), Int, ( Ptr{Void}, ), win )
+    maxx = ccall((:getbegx, ncurses), Int, ( Ptr{Void}, ), win )
     ( maxy, maxx )
 end
 
 function mvwin( win, y::Int, x::Int )
-    ccall( dlsym( ncurses, :mvwin), Int, ( Ptr{Void}, Int, Int ), win, y, x )
+    ccall((:mvwin, ncurses), Int, ( Ptr{Void}, Int, Int ), win, y, x )
 end
 
 function beep()
-    ccall( dlsym( ncurses, :beep ), Void, () )
+    ccall((:beep, ncurses ), Void, () )
 end
 
 function flash()
-    ccall( dlsym( ncurses, :flash), Void, () )
+    ccall((:flash, ncurses), Void, () )
 end
 
 function is_term_resized( lines::Int, cols::Int )
-    ccall( dlsym( ncurses, :is_term_resized ), Bool, (Int, Int), lines, cols )
+    ccall((:is_term_resized, ncurses ), Bool, (Int, Int), lines, cols )
 end
 
 function wresize( win, lines::Int, cols::Int )
-    ccall( dlsym( ncurses, :wresize), Int, (Ptr{Void}, Int, Int), win, lines, cols )
+    ccall((:wresize), Int, (Ptr{Void}, Int, Int), win, lines, cols )
 end
 
 function getcuryx( win )
-    cury = ccall( dlsym(ncurses, :getcury), Cint, ( Ptr{Void}, ), win )
-    curx = ccall( dlsym(ncurses, :getcurx), Cint, ( Ptr{Void}, ), win )
+    cury = ccall((:getcury, ncurses), Cint, ( Ptr{Void}, ), win )
+    curx = ccall((:getcurx, ncurses), Cint, ( Ptr{Void}, ), win )
     ( cury, curx )
 end
 
 function start_color()
-    ccall( dlsym( ncurses, :start_color), Void, () )
+    ccall((:start_color, ncurses), Void, () )
 end
 
 function init_pair( pair, f, b )
-    ccall( dlsym( ncurses, :init_pair ), Int, ( Int16, Int16, Int16 ), pair, f, b )
+    ccall((:init_pair, ncurses), Int, ( Int16, Int16, Int16 ), pair, f, b )
 end
 
 function init_color( color, r,g,b )
-    ccall( dlsym( ncurses, :init_color ), Int, ( Int16, Int16, Int16, Int16 ),
+    ccall((:init_color, ncurses), Int, ( Int16, Int16, Int16, Int16 ),
         color, r,g,b )
 end
 
 function has_colors()
-    ccall( dlsym( ncurses, :has_colors), Bool, () )
+    ccall((:has_colors, ncurses), Bool, () )
 end
 
 function wattroff( win, attrs )
-    ccall( dlsym(ncurses, :wattroff), Int, ( Ptr{Void}, Uint32 ), win, attrs )
+    ccall((:wattroff, ncurses), Int, ( Ptr{Void}, Uint32 ), win, attrs )
 end
 
 function wattron( win, attrs )
-    ccall( dlsym(ncurses, :wattron), Int, ( Ptr{Void}, Uint32 ), win, attrs )
+    ccall((:wattron, ncurses), Int, ( Ptr{Void}, Uint32 ), win, attrs )
 end
 
 function wattrset( win, attrs )
-    ccall( dlsym(ncurses, :wattrset), Int, ( Ptr{Void}, Uint32 ), win, attrs )
+    ccall((:wattrset, ncurses), Int, ( Ptr{Void}, Uint32 ), win, attrs )
 end
 
 function wbkgdset( win, ch )
-    ccall( dlsym(ncurses, :wbkgdset ), Void, ( Ptr{Void}, Uint32 ), win, ch )
+    ccall((:wbkgdset, ncurses ), Void, ( Ptr{Void}, Uint32 ), win, ch )
 end
 
 function wbkgd( win, ch )
-    ccall( dlsym(ncurses, :wbkgd ), Void, ( Ptr{Void}, Uint32 ), win, ch )
+    ccall((:wbkgd, ncurses ), Void, ( Ptr{Void}, Uint32 ), win, ch )
 end
 
 function curs_set( vis )
-    ccall( dlsym(ncurses, :curs_set), Int, ( Int, ), vis )
+    ccall((:curs_set, ncurses), Int, ( Int, ), vis )
 end
 
 function has_mouse()
-    ccall( dlsym(ncurses, :has_mouse), Bool, () )
+    ccall((:has_mouse, ncurses), Bool, () )
 end
 
 function mousemask( mask )
     oldmm = Array( Uint64, 1 )
-    resultmm = ccall( dlsym( ncurses, :mousemask), Uint64, (Uint64, Ptr{Uint64}), mask, oldmm )
-    ( resultmm, oldmm[1])
+    resultmm = ccall((:mousemask, ncurses), Uint64, (Uint64, Ptr{Uint64}), mask, oldmm )
+    ( resultmm, oldmm[1] )
 end
 
 function mouseinterval( n::Int )
-    ccall( dlsym(ncurses, :mouseinterval), Int, (Int, ) , n)
+    ccall((:mouseinterval, ncurses), Int, (Int, ) , n)
 end
 
 #hack!
@@ -322,7 +327,7 @@ function getmouse()
     # 17th byte is x02 if button 1 pressed
     # 17th byte is x01 if button 1 released
     # 17-18th is 0xfffd if mousewheel is pressed down
-    ccall( dlsym( ncurses, :getmouse), Int, (Ptr{Uint8}, ), mouseByteString )
+    ccall((:getmouse, ncurses), Int, (Ptr{Uint8}, ), mouseByteString )
     bs = mouseByteString
     x = uint8(bs[5])
     y = uint8(bs[9])
@@ -339,73 +344,73 @@ function getmouse()
 end
 
 function baudrate()
-    ccall( dlsym( ncurses, :baudrate), Int, () )
+    ccall((:baudrate, ncurses), Int, () )
 end
 
 function clearok( win, bf )
-    ccall( dlsym( ncurses, :clearok), Int, ( Ptr{Void}, Bool ), win, bf )
+    ccall((:clearok, ncurses), Int, ( Ptr{Void}, Bool ), win, bf )
 end
 
 function immedok( win, bf )
-    ccall( dlsym( ncurses, :immedok), Int, ( Ptr{Void}, Bool ), win, bf )
+    ccall((:immedok, ncurses), Int, ( Ptr{Void}, Bool ), win, bf )
 end
 
 function napms( ms::Int )
-    ccall( dlsym( ncurses, :napms), Int, (Int, ), ms )
+    ccall((:napms, ncurses), Int, (Int, ), ms )
 end
 
 #===== PANEL library ====#
 
 function update_panels()
-    ccall( dlsym( panel, :update_panels), Void, () )
+    ccall((:update_panels, npanel), Void, () )
 end
 
 function doupdate()
-    ccall( dlsym( panel, :doupdate ), Void, () )
+    ccall((:doupdate, npanel ), Void, () )
 end
 
 function new_panel( win::Ptr{Void} )
-    ccall( dlsym( panel, :new_panel ), Ptr{Void}, ( Ptr{Void}, ), win )
+    ccall((:new_panel, npanel ), Ptr{Void}, ( Ptr{Void}, ), win )
 end
 
 function top_panel( pan::Ptr{Void} )
-    ccall( dlsym( panel, :top_panel ), Int, ( Ptr{Void}, ), pan )
+    ccall((:top_panel, npanel ), Int, ( Ptr{Void}, ), pan )
 end
 
 function bottom_panel( pan::Ptr{Void} )
-    ccall( dlsym( panel, :bottom_panel ), Int, ( Ptr{Void}, ), pan )
+    ccall((:bottom_panel, npanel ), Int, ( Ptr{Void}, ), pan )
 end
 
 function move_panel( pan::Ptr{Void}, starty::Int, startx::Int )
-    ccall( dlsym( panel, :move_panel ), Ptr{Void}, ( Ptr{Void}, Int, Int ), pan, starty, startx )
+    ccall((:move_panel, npanel ), Ptr{Void}, ( Ptr{Void}, Int, Int ), pan, starty, startx )
 end
 
 function del_panel( panel::Ptr{Void} )
-    ccall(dlsym( panel, :del_panel ), Void, (Ptr{Void}, ), panel )
+    ccall((:del_panel, npanel ), Void, (Ptr{Void}, ), panel )
 end
 
 function show_panel( panel::Ptr{Void} )
-    ccall(dlsym( panel, :show_panel ), Int, (Ptr{Void}, ), panel )
+    ccall((:show_panel, npanel ), Int, (Ptr{Void}, ), panel )
 end
 
 function hide_panel( panel::Ptr{Void} )
-    ccall(dlsym( panel, :hide_panel ), Int, (Ptr{Void}, ), panel )
+    ccall((:hide_panel ), Int, (Ptr{Void}, ), panel )
 end
 
 function panel_hidden( panel::Ptr{Void } )
-    ccall(dlsym( panel, :panel_hidden ), Int, (Ptr{Void}, ), panel ) != 0
+    ccall((:panel_hidden, npanel ), Int, (Ptr{Void}, ), panel ) != 0
 end
 
 function replace_panel( panel::Ptr{Void}, window::Ptr{Void} )
-    ccall(dlsym( panel, :replace_panel ), Void, (Ptr{Void}, Ptr{Void} ), panel, window )
+    ccall((:replace_panel ), Void, (Ptr{Void}, Ptr{Void} ), panel, window )
 end
 
 function set_panel_userptr( p1::Ptr{Void}, p2::Ptr{Void} )
-    ccall(dlsym( panel, :set_panel_userptr), Void, (Ptr{Void}, Ptr{Void}), p1, p2 )
+    ccall((:set_panel_userptr), Void, (Ptr{Void}, Ptr{Void}), p1, p2 )
 end
 
 function wborder( win::Ptr{Void},ls::chtype,rs::chtype,ts::chtype,bs::chtype,tl::chtype,tr::chtype,bl::chtype,br::chtype)
-    ccall(dlsym( panel, :wborder), Int, (Ptr{Void}, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8), ls, rs,ts, bs, tl, tr, bl, br)
+    ccall((:wborder, npanel), Int, (Ptr{Void}, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8), ls, rs,ts, bs, tl, tr, bl, br)
 end
 
 export initscr, endwin, isendwin, newwin, subwin, delwin, derwin, werase, erase, refresh, mvwaddch, wclear, mvwprintw, touchwin, wmove, box, wrefresh, wgetch, nocbreak, keypad, nodelay, noecho, cbreak, echo, raw, noraw, timeout, notimeout, mvwin, getwinbegyx, beep, wtimeout, flash, getwinmaxyx, is_term_resized, wresize, getcuryx, start_color, init_pair, init_color, has_colors, wattroff, wattron, wattrset, wbkgdset, wbkgd, curs_set, has_mouse, mousemask, mouseinterval, getmouse, mouseByteString, baudrate, clearok, immedok, napms, update_panels, doupdate, new_panel, top_panel, bottom_panel, hide_panel, move_panel, del_panel, show_panel, panel_hidden, replace_panel, set_panel_userptr
@@ -430,4 +435,4 @@ end
 
 # NCURSES_VERSION = ""
 
-# export ncurses, panel, form, menu, NCURSES_VERSION
+# export panel, form, menu, NCURSES_VERSION
