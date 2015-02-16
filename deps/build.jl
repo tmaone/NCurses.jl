@@ -87,8 +87,6 @@ else
   # We start adding the standard ncurses library, :win then :linux then :darwin
   @windows_only begin
     using WinRPM
-    # find out if current build method works on Win.
-    provides(WinRPM.RPM,"ncurses", ncurses, os = :Windows)
     ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Windows,
     onload =
     """
@@ -96,14 +94,12 @@ else
         ENV["NCURSES_MODE"] = ""
     end
     """)
+    # find out if current build method works on Win.
+    provides(WinRPM.RPM,"ncurses", ncurses, os = :Windows)
     # TODO: remove me when upstream is fixed
     warn("Not supported yet!")
   end
   @linux_only begin
-    # TODO: Not sure, check if they are valid
-    provides(AptGet, "ncurses", ncurses)
-    provides(Pacman, "ncurses", ncurses)
-    provides(Yum, "ncurses-devel", ncurses)
     ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Linux,
     onload =
     """
@@ -111,6 +107,10 @@ else
         ENV["NCURSES_MODE"] = ""
     end
     """)
+    # TODO: Not sure, check if they are valid
+    provides(AptGet, "ncurses", ncurses)
+    provides(Pacman, "ncurses", ncurses)
+    provides(Yum, "ncurses-devel", ncurses)
   end
   @osx_only begin
     # in osx a really old ncurses library resides in /usr/lib.
