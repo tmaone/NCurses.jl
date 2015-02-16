@@ -2,39 +2,44 @@ using BinDeps
 
 @BinDeps.setup
 
-# The intention is to, where available use the 'tw' version, so in most cases we will compile a local library.
 
-const ncurses_major = 5
-const ncurses_minor = 9
-const ncurses_patch = 20150214
+# The intention is to, where available, use the 'tw' version so in most cases we will compile a local library.
 
-const ncurses_version = "5.9"
-const ncursestw_version = "5.9-20150214"
+const nc_major = 5
+const nc_minor = 9
+const nc_patch = 20150214
 
-lid_ncurses_names = ["libcurses", "libncurses"]
-lid_ncursestw_names = ["libncursestw", "libncursest", "libncursesw"]
+const ncurses_version = "$(nc_major).$(nc_minor)"
+const ncursestw_version = "$(ncurses_version)-$(nc_patch)"
 
-suffixes = ["", "6", ".6.", "-5.9", "5.9", "5.4"]
+lib_ncurses_names = ["libcurses", "libncurses"]
+lib_ncursestw_names = ["libncursestw", "libncursest", "libncursesw"]
+
+suffixes = ["", ".6", "-5.9", ".5.9", ".5.4", ".5"]
+
 options = [""]
-extensions = ["", ".a", ".so.5", ".dylib"]
-#
-aliases_ncurses = vec(lid_ncurses_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
-aliases_ncursestw = vec(lid_ncursestw_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
+extensions = ["", ".$(BinDeps.shlib_ext)" ]
+
+installed_file = "installed_version"
+
+aliases_ncurses = vec(lib_ncurses_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
+
+aliases_ncursestw = vec(lib_ncursestw_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
 @windows_only begin
   using WinRPM
   const OS_ARCH = (WORD_SIZE == 64) ? "x64" : "x86"
   provides(WinRPM.RPM,"ncurses", ncurses, os = :Windows)
-  # provides(WinRPM.RPM,"ncursestw", ncursestw, os = :Windows) ## find out if current build method works on Win.
+  # find out if current build method works on Win.
   # TODO: remove me when upstream is fixed
-  warn("Not supported!")
+  warn("Not supported yet!")
 end
 
 @unix_only begin
 
     ncurses = library_dependency("ncurses", aliases = aliases_ncurses)
-    ncursestw = library_dependency("ncursesw", aliases = aliases_ncursestw)
+    ncursestw = library_dependency("ncursestw", aliases = aliases_ncursestw)
 
     @linux_only begin
 
@@ -46,10 +51,6 @@ end
 
 end
 
-
-
-
-#
 # provides(Sources, {URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-5.9-20150214.tgz") => ncursestw})
 #
 # ncurses_home = get(ENV, "NCURSES_HOME", "") # If NCURSES_HOME is defined, add to library search path

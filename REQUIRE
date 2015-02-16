@@ -2,5 +2,5 @@ julia 0.4-
 
 BinDeps
 
-@osx Homebrew
+# @osx Homebrew # homebrew does not provide ncurses, only in dupes tap.
 @windows WinRPM
