@@ -1,92 +1,126 @@
 using BinDeps
+
 @BinDeps.setup
 
-const ncurses_req_version = "5.9"
+# The intention is to, where available use the 'tw' version, so in most cases we will compile a local library.
+
+const ncurses_major = 5
+const ncurses_minor = 9
+const ncurses_patch = 20150214
+
+const ncurses_version = "5.9"
+const ncursestw_version = "5.9-20150214"
 
 lid_ncurses_names = ["libcurses", "libncurses"]
 lid_ncursestw_names = ["libncursestw", "libncursest", "libncursesw"]
 
-suffixes = ["", "-5.9", "5.9", "5.4", "6", ".6."]
+suffixes = ["", "6", ".6.", "-5.9", "5.9", "5.4"]
 options = [""]
 extensions = ["", ".a", ".so.5", ".dylib"]
-
+#
 aliases_ncurses = vec(lid_ncurses_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
 aliases_ncursestw = vec(lid_ncursestw_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
-deps = [ncurses = library_dependency("ncurses", aliases = aliases_ncurses),
-        ncursestw = library_dependency("ncursesw", aliases = aliases_ncursestw)]
-
-provides(Sources, {URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_req_version).tar.gz") => ncurses,URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_req_version).tar.gz") => ncursestw
-})
-
-ncurses_home = get(ENV, "NCURSES_HOME", "") # If NCURSES_HOME is defined, add to library search path
-
-if !isempty(ncurses_home)
-  push!(DL_LOAD_PATH, ncurses_home)
-  push!(DL_LOAD_PATH, joinpath(ncurses_home,"lib"))
-end
-
-@linux_only begin # TODO: Not sure
-  provides(AptGet, "ncurses", ncurses)
-  provides(AptGet, "ncurses", ncurses)
-  provides(Pacman, "ncurses", ncurses)
-  provides(Yum, "ncurses", ncurses)
-end
-
 @windows_only begin
+  using WinRPM
   const OS_ARCH = (WORD_SIZE == 64) ? "x64" : "x86"
+  provides(WinRPM.RPM,"ncurses", ncurses, os = :Windows)
+  # provides(WinRPM.RPM,"ncursestw", ncursestw, os = :Windows) ## find out if current build method works on Win.
   # TODO: remove me when upstream is fixed
-  error("Not supported")
+  warn("Not supported!")
 end
 
-@osx_only begin # if library functionality is satisfied using core calls then use classic HB package for ncurses
-# if Pkg.installed("Homebrew") === nothing
-#         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
+@unix_only begin
+
+    ncurses = library_dependency("ncurses", aliases = aliases_ncurses)
+    ncursestw = library_dependency("ncursesw", aliases = aliases_ncursestw)
+
+    @linux_only begin
+
+    end
+
+    @osx_only begin
+
+    end
+
+end
+
+
+
+
+#
+# provides(Sources, {URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-5.9-20150214.tgz") => ncursestw})
+#
+# ncurses_home = get(ENV, "NCURSES_HOME", "") # If NCURSES_HOME is defined, add to library search path
+#
+# if !isempty(ncurses_home)
+#   push!(DL_LOAD_PATH, ncurses_home)
+#   push!(DL_LOAD_PATH, joinpath(ncurses_home,"lib"))
 # end
-# using Homebrew
-# provides( Homebrew.HB, "ncurses", ncurses, os = :Darwin )
-end
+#
+#
+#
+# @linux_only begin # TODO: Not sure, check if they are valid
+#   provides(AptGet, "ncurses", ncurses)
+#   provides(AptGet, "ncurses", ncurses)
+#   provides(Pacman, "ncurses", ncurses)
+#   provides(Yum, "ncurses", ncurses)
+# end
+#
+# @windows_only begin
+#   const OS_ARCH = (WORD_SIZE == 64) ? "x64" : "x86"
+#   # TODO: remove me when upstream is fixed
+#   error("Not supported")
+# end
+#
+# @osx_only begin # if library functionality is satisfied using core calls then use classic HB package for ncurses
+# # if Pkg.installed("Homebrew") === nothing
+# #         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
+# # end
+# # using Homebrew
+# # provides( Homebrew.HB, "ncurses", ncurses, os = :Darwin )
+# end
+#
+# @osx_only begin # but try this custom build method (replicates brew formula patch) during initial module development
+#
+#   prefix = BinDeps.usrdir(ncursestw)
+#   srcdir = BinDeps.srcdir(ncursestw)
+#   srcdirnc = joinpath(srcdir, "ncurses-5.9")
+#   dldir = BinDeps.downloadsdir(ncursestw)
+#
+#   lib_url = "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
+#   lib_src_dl = joinpath(dldir, "ncurses-5.9.tar.gz")
+#
+#   patch_file_url = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
+#   patch_file_dl = joinpath(dldir, "ncurses-5.9.patch")
+#
+#   target = joinpath(prefix,"lib/libncursestw.$(BinDeps.shlib_ext)")
+#
+#   provides(SimpleBuild,(
+#     @build_steps begin
+#       GetSources(ncursestw)
+#       FileDownloader(lib_url, lib_src_dl)
+#       FileDownloader(patch_file_url, patch_file_dl)
+#       CreateDirectory(srcdir, true)
+#       FileUnpacker(lib_src_dl, srcdir, "ncurses-5.9")
+#       @build_steps begin
+#           ChangeDirectory(srcdirnc)
+#           `patch -p0 c++/cursesf.h $patch_file_dl`
+#       end
+#       @build_steps begin
+#           ChangeDirectory(srcdirnc)
+#           `./configure --prefix=$prefix --without-cxx --without-cxx-binding --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-rpath --enable-widec --with-manpage-format=normal --with-shared --with-normal --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-term-driver --enable-interop --enable-reentrant --with-pthread --enable-termcap --with-sysmouse`
+#       end
+#       @build_steps begin
+#         ChangeDirectory(srcdirnc)
+#         MakeTargets(["install"]) #`make install`
+#       end
+#   end), ncursestw, os = :Darwin)
 
-@osx_only begin # but try this custom build method (replicates brew formula patch) during initial module development
+# end
 
-  prefix = BinDeps.usrdir(ncursestw)
-  srcdir = BinDeps.srcdir(ncursestw)
-  srcdirnc = joinpath(srcdir, "ncurses-5.9")
-  dldir = BinDeps.downloadsdir(ncursestw)
-
-  lib_url = "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
-  lib_src_dl = joinpath(dldir, "ncurses-5.9.tar.gz")
-
-  patch_file_url = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
-  patch_file_dl = joinpath(dldir, "ncurses-5.9.patch")
-
-  target = joinpath(prefix,"lib/libncursestw.$(BinDeps.shlib_ext)")
-
-  provides(SimpleBuild,(
-    @build_steps begin
-      GetSources(ncursestw)
-      FileDownloader(lib_url, lib_src_dl)
-      FileDownloader(patch_file_url, patch_file_dl)
-      CreateDirectory(srcdir, true)
-      FileUnpacker(lib_src_dl, srcdir, "ncurses-5.9")
-      @build_steps begin
-          ChangeDirectory(srcdirnc)
-          `patch -p0 c++/cursesf.h $patch_file_dl`
-      end
-      @build_steps begin
-          ChangeDirectory(srcdirnc)
-          `./configure --prefix=$prefix --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-widec --with-manpage-format=normal --with-shared --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-interop --enable-reentrant --with-pthread --enable-symlinks --enable-termcap --with-sysmouse`
-      end
-      @build_steps begin
-        ChangeDirectory(srcdirnc)
-        MakeTargets(["install"]) #`make install`
-      end
-  end), ncursestw, os = :Darwin)
-
-end
-
-@BinDeps.install Dict([(:ncursestw => :ncursestw)])
+# @BinDeps.install Dict([(:ncursestw => :ncursestw)])
 
 # module CheckVersion
 #

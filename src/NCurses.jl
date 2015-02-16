@@ -1,7 +1,12 @@
 export NCurses
+
 module NCurses
 
 using BinDeps
+
+# NCURSES_LIB = '' || nothing => default, system found version
+# NCURSES_LIB = 't' || 'w' || 'tw' => custom locally built version
+# NCURSES_LIB =
 
 @BinDeps.load_dependencies [:ncurses => :ncurses]
 
