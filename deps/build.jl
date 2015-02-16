@@ -1,7 +1,7 @@
 using BinDeps
 @BinDeps.setup
 
-const ncurses_install_version = "5.9"
+const ncurses_req_version = "5.9"
 
 lid_ncurses_names = ["libcurses", "libncurses"]
 lid_ncursestw_names = ["libncursestw", "libncursest", "libncursesw"]
@@ -17,7 +17,7 @@ aliases_ncursestw = vec(lid_ncursestw_names.*transpose(suffixes).*reshape(option
 deps = [ncurses = library_dependency("ncurses", aliases = aliases_ncurses),
         ncursestw = library_dependency("ncursesw", aliases = aliases_ncursestw)]
 
-provides(Sources, {URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_install_version).tar.gz") => ncurses,URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_install_version).tar.gz") => ncursestw
+provides(Sources, {URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_req_version).tar.gz") => ncurses,URI("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$(ncurses_req_version).tar.gz") => ncursestw
 })
 
 ncurses_home = get(ENV, "NCURSES_HOME", "") # If NCURSES_HOME is defined, add to library search path
