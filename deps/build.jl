@@ -11,106 +11,181 @@ const nc_patch = 20150214
 const ncurses_version = "$(nc_major).$(nc_minor)"
 const ncursestw_version = "$(ncurses_version)-$(nc_patch)"
 
-lib_ncurses_names = ["libcurses", "libncurses"]
-lib_ncursestw_names = ["libncursestw", "libncursest", "libncursesw"]
+const lib_ncurses_names = ["libcurses", "libncurses"]
+const lib_ncursestw_names = ["libncursestw", "libncursest", "libncursesw"]
 
-suffixes = ["", ".6", "-5.9", ".5.9", ".5.4", ".5"]
+const suffixes = ["", ".6", "-5.9", ".5.9", ".5.4", ".5"]
 
-options = [""]
+const options = [""]
 
-extensions = ["", ".$(BinDeps.shlib_ext)" ]
+const extensions = ["", ".$(BinDeps.shlib_ext)" ]
 
-installed_file = "installed_version"
+const installed_file = "installed_version"
+
+const NCURSES_MODE = get(ENV, "NCURSES_MODE", "")
 
 aliases_ncurses = vec(lib_ncurses_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
 aliases_ncursestw = vec(lib_ncursestw_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
-# We start adding the standard ncurses library, win then linux then darwin
+if NCURSES_MODE == "tw" || NCURSES_MODE == "w" || NCURSES_MODE == "t"
 
-@windows_only begin
+  info("NCurses-extra library enabled. [($NCURSES_MODE)]")
+  # Now we define build steps for our tuned version. The idea
+  # is to start with one build target, with os differentiation coming
+  # to place upon necessity
+  ncurses = library_dependency("ncurses", aliases = aliases_ncursestw)
+  provides(Sources, URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-$(ncurses_version)-$(nc_patch).tgz"), SHA="c88fecbf91b94faa1de7dc3192ad2fd227eeed1648c5daa736119b9a7ff08e07", ncurses)
 
-  using WinRPM
-  # find out if current build method works on Win.
-  provides(WinRPM.RPM,"ncurses", ncurses, os = :Windows)
-  ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Windows)
-  # TODO: remove me when upstream is fixed
-  warn("Not supported yet!")
+  prefix = BinDeps.usrdir(ncurses)
+  provides( BuildProcess,
+            Autotools(
+            libtarget = [ "lib/libncursestw.$(BinDeps.shlib_ext)",
+                          "lib/libformtw.$(BinDeps.shlib_ext)",
+                          "lib/libmenutw.$(BinDeps.shlib_ext)",
+                          "lib/libpaneltw.$(BinDeps.shlib_ext)" ],
+              configure_options = [
+                                  "--prefix=$(prefix)",
+                                  "--without-ada",
+                                  "--without-cxx",
+                                  "--without-cxx-binding",
+                                  "--without-manpages",
+                                  # "--with-manpage-format=normal",
+                                  "--enable-dependency-linking",
+                                  # "--enable-pc-files",
+                                  "--enable-sigwinch",
+                                  "--enable-symlinks",
+                                  "--enable-rpath",
+                                  "--enable-widec",
+                                  "--with-shared",
+                                  # "--with-normal",
+                                  "--enable-ext-colors",
+                                  "--enable-ext-mouse",
+                                  "--enable-getcap",
+                                  "--enable-hard-tabs",
+                                  "--enable-term-driver",
+                                  "--enable-interop",
+                                  "--enable-reentrant",
+                                  "--with-pthread",
+                                  "--enable-termcap",
+                                  "--with-sysmouse",
+                                  "--enable-sp-funcs",
+                                  "--enable-term-driver",
+                                  "--enable-tcap-names"
+                                ],
+                                prefix = prefix
+            ), ncurses,
+            onload =
+            """
+            function __init__()
+                ENV["NCURSES_MODE"] = "tw"
+                ENV["NCURSES_VERSION"] = "$(ncursestw_version)"
+            end
+            """)
+  @BinDeps.install Dict([(:ncurses => :ncurses)])
+else
+  info("Using system ncurses library.")
+  # We start adding the standard ncurses library, :win then :linux then :darwin
+  @windows_only begin
+    using WinRPM
+    # find out if current build method works on Win.
+    provides(WinRPM.RPM,"ncurses", ncurses, os = :Windows)
+    ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Windows,
+    onload =
+    """
+    function __init__()
+        ENV["NCURSES_MODE"] = ""
+    end
+    """)
+    # TODO: remove me when upstream is fixed
+    warn("Not supported yet!")
+  end
+  @linux_only begin
+    # TODO: Not sure, check if they are valid
+    provides(AptGet, "ncurses", ncurses)
+    provides(Pacman, "ncurses", ncurses)
+    provides(Yum, "ncurses", ncurses)
+    ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Linux,
+    onload =
+    """
+    function __init__()
+        ENV["NCURSES_MODE"] = ""
+    end
+    """)
+  end
+  @osx_only begin
+    # in osx a really old ncurses library resides in /usr/lib.
+    # homebrew has ncurses in dupes, atm building through
+    # homebrew is not an option threrefore we just add
+    # this old ncurses lib for now by default
+    ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Dawrin,
+    onload =
+    """
+    function __init__()
+        ENV["NCURSES_MODE"] = ""
+    end
+    """)
+  end
+  @BinDeps.install Dict([(:ncurses => :ncurses)])
 end
 
-@linux_only begin
-
-  # TODO: Not sure, check if they are valid
-  provides(AptGet, "ncurses", ncurses)
-  provides(Pacman, "ncurses", ncurses)
-  provides(Yum, "ncurses", ncurses)
-  ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Linux)
-
-end
-
-@osx_only begin
-
-  # in osx a really old ncurses library resides in /usr/lib.
-  # homebrew has ncurses in dupes, atm building through
-  # homebrew is not an option threrefore we just add
-  # this old ncurses lib for now by default
-  ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Dawrin)
-
-end
-
-# Now we define build steps for our tuned version. The idea
-# is one build target, with os differentiation upon necessity
-
-ncursestw = library_dependency("ncursestw", aliases = aliases_ncursestw)
-
-provides(Sources, URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-$(ncurses_version)-$(nc_patch).tgz"), SHA="c88fecbf91b94faa1de7dc3192ad2fd227eeed1648c5daa736119b9a7ff08e07", ncursestw)
-
-prefix = BinDeps.usrdir(ncursestw)
-
-provides( BuildProcess,
-          Autotools(
-          libtarget = [ "lib/libncursestw.$(BinDeps.shlib_ext)",
-                        "lib/libformtw.$(BinDeps.shlib_ext)",
-                        "lib/libmenutw.$(BinDeps.shlib_ext)",
-                        "lib/libpaneltw.$(BinDeps.shlib_ext)" ],
-            configure_options = [
-                                "--prefix=$(prefix)",
-                                "--without-ada",
-                                "--without-cxx",
-                                "--without-cxx-binding",
-                                "--without-manpages",
-                                # "--with-manpage-format=normal",
-                                "--enable-dependency-linking",
-                                # "--enable-pc-files",
-                                "--enable-sigwinch",
-                                "--enable-symlinks",
-                                "--enable-rpath",
-                                "--enable-widec",
-                                "--with-shared",
-                                # "--with-normal",
-                                "--enable-ext-colors",
-                                "--enable-ext-mouse",
-                                "--enable-getcap",
-                                "--enable-hard-tabs",
-                                "--enable-term-driver",
-                                "--enable-interop",
-                                "--enable-reentrant",
-                                "--with-pthread",
-                                "--enable-termcap",
-                                "--with-sysmouse",
-                                "--enable-sp-funcs",
-                                "--enable-term-driver",
-                                "--enable-tcap-names"
-                              ],
-                              force_rebuild = true,
-                              prefix = prefix
-          ), ncursestw)
-
-@BinDeps.install Dict([(:ncurses => :ncurses),(:ncursestw => :ncursestw)])
 
 
+#
+# # Now we define build steps for our tuned version. The idea
+# # is to start with one build target, with os differentiation coming
+# # to place upon necessity
+#
+# ncursestw = library_dependency("ncursestw", aliases = aliases_ncursestw)
+#
+# provides(Sources, URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-$(ncurses_version)-$(nc_patch).tgz"), SHA="c88fecbf91b94faa1de7dc3192ad2fd227eeed1648c5daa736119b9a7ff08e07", ncursestw)
+#
+# prefix = BinDeps.usrdir(ncursestw)
+#
+# provides( BuildProcess,
+#           Autotools(
+#           libtarget = [ "lib/libncursestw.$(BinDeps.shlib_ext)",
+#                         "lib/libformtw.$(BinDeps.shlib_ext)",
+#                         "lib/libmenutw.$(BinDeps.shlib_ext)",
+#                         "lib/libpaneltw.$(BinDeps.shlib_ext)" ],
+#             configure_options = [
+#                                 "--prefix=$(prefix)",
+#                                 "--without-ada",
+#                                 "--without-cxx",
+#                                 "--without-cxx-binding",
+#                                 "--without-manpages",
+#                                 # "--with-manpage-format=normal",
+#                                 "--enable-dependency-linking",
+#                                 # "--enable-pc-files",
+#                                 "--enable-sigwinch",
+#                                 "--enable-symlinks",
+#                                 "--enable-rpath",
+#                                 "--enable-widec",
+#                                 "--with-shared",
+#                                 # "--with-normal",
+#                                 "--enable-ext-colors",
+#                                 "--enable-ext-mouse",
+#                                 "--enable-getcap",
+#                                 "--enable-hard-tabs",
+#                                 "--enable-term-driver",
+#                                 "--enable-interop",
+#                                 "--enable-reentrant",
+#                                 "--with-pthread",
+#                                 "--enable-termcap",
+#                                 "--with-sysmouse",
+#                                 "--enable-sp-funcs",
+#                                 "--enable-term-driver",
+#                                 "--enable-tcap-names"
+#                               ],
+#                               force_rebuild = true,
+#                               prefix = prefix
+#           ), ncursestw)
+#
+# println(NCURSES_MODE)
+#
+# @BinDeps.install Dict([(:ncurses => :ncurses),(:ncursestw => :ncursestw)])
 
-# Old build steps, will delete soon
+# Old build steps, will delete when current build script matures
 
 # prefix = BinDeps.usrdir(ncursestw)
 # srcdir = BinDeps.srcdir(ncursestw)

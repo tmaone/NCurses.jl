@@ -1,14 +1,12 @@
 export NCurses
-
 module NCurses
 
 using BinDeps
 
-# NCURSES_LIB = '' || nothing => default, system found version
-# NCURSES_LIB = 't' || 'w' || 'tw' => custom locally built version
-# NCURSES_LIB =
+# NCURSES_MODE = '' || nothing => default, system found version
+# NCURSES_MODE = 't' || 'w' || 'tw' => custom locally built version
 
-@BinDeps.load_dependencies [:ncurses => :ncurses]
+@BinDeps.load_dependencies "../deps/deps.jl" [:ncurses]
 
 const COLOR_BLACK   = 0
 const COLOR_RED     = 1
@@ -71,11 +69,12 @@ function get_nc_version()
     if nc_ver != C_NULL
         NCURSES_VERSION = bytestring(nc_ver)
     end
+    NCURSES_VERSION
 end
 
 function __init__()
-  get_nc_version()
-  info("NCurses Ver: $(NCURSES_VERSION)")
+  # get_nc_version()
+  # info("NCurses Ver: $(NCURSES_VERSION)")
 end
 
 function initscr()
