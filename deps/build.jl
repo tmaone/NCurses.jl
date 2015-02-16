@@ -103,7 +103,7 @@ else
     # TODO: Not sure, check if they are valid
     provides(AptGet, "ncurses", ncurses)
     provides(Pacman, "ncurses", ncurses)
-    provides(Yum, "ncurses", ncurses)
+    provides(Yum, "ncurses-devel", ncurses)
     ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Linux,
     onload =
     """
