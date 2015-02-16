@@ -27,19 +27,94 @@ aliases_ncurses = vec(lib_ncurses_names.*transpose(suffixes).*reshape(options,(1
 
 aliases_ncursestw = vec(lib_ncursestw_names.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
 
+# We start adding the standard ncurses library, win then linux then darwin
+
 @windows_only begin
+
   using WinRPM
-  const OS_ARCH = (WORD_SIZE == 64) ? "x64" : "x86"
-  provides(WinRPM.RPM,"ncurses", ncurses, os = :Windows)
   # find out if current build method works on Win.
+  provides(WinRPM.RPM,"ncurses", ncurses, os = :Windows)
+  ncurses = library_dependency("ncurses", aliases = aliases_ncurses )
   # TODO: remove me when upstream is fixed
   warn("Not supported yet!")
 end
 
+@linux_only begin # TODO: Not sure, check if they are valid
+  provides(AptGet, "ncurses", ncurses)
+  provides(Pacman, "ncurses", ncurses)
+  provides(Yum, "ncurses", ncurses)
+  ncurses = library_dependency("ncurses", aliases = aliases_ncurses)
+end
+
+@osx_only begin
+  # in osx a really old ncurses library is in /usr/lib
+  # homebrew has ncurses in dupes, atm building through homebrew is not an option
+  # threrefore we just add this old ncurses for now by default
+  ncurses = library_dependency("ncurses", aliases = aliases_ncurses)
+end
+
+@BinDeps.install Dict([(:ncurses => :ncurses)])
+
+# prefix = BinDeps.usrdir(ncurses)
+#
+#
+#
+#
+#
+# ncurses = library_dependency("ncurses", aliases = aliases_ncurses)
+#
+# provides(Sources, {URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-5.9-20150214.tgz") => ncurses})
+#
+#
+#
+#
+#
+#
+#
+#
+# @BinDeps.install Dict([(:ncursestw => :ncursestw)])
+
+
+#
+#
+#   srcdir = BinDeps.srcdir(ncursestw)
+#   srcdirnc = joinpath(srcdir, "ncurses-5.9")
+#   dldir = BinDeps.downloadsdir(ncursestw)
+#
+#   lib_url = "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
+#   lib_src_dl = joinpath(dldir, "ncurses-5.9.tar.gz")
+#
+#   patch_file_url = "https://trac.macports.org/export/103963/trunk/dports/devel/ncurses/files/constructor_types.diff"
+#   patch_file_dl = joinpath(dldir, "ncurses-5.9.patch")
+#
+#   target = joinpath(prefix,"lib/libncursestw.$(BinDeps.shlib_ext)")
+#
+#   provides(SimpleBuild,(
+#     @build_steps begin
+#       GetSources(ncursestw)
+#       FileDownloader(lib_url, lib_src_dl)
+#       FileDownloader(patch_file_url, patch_file_dl)
+#       CreateDirectory(srcdir, true)
+#       FileUnpacker(lib_src_dl, srcdir, "ncurses-5.9")
+#       @build_steps begin
+#           ChangeDirectory(srcdirnc)
+#           `patch -p0 c++/cursesf.h $patch_file_dl`
+#       end
+#       @build_steps begin
+#           ChangeDirectory(srcdirnc)
+#           `./configure --prefix=$prefix --without-cxx --without-cxx-binding --enable-dependency-linking --enable-pc-files --enable-sigwinch --enable-symlinks --enable-rpath --enable-widec --with-manpage-format=normal --with-shared --with-normal --enable-ext-colors --enable-ext-mouse --enable-getcap --enable-hard-tabs --enable-term-driver --enable-interop --enable-reentrant --with-pthread --enable-termcap --with-sysmouse`
+#       end
+#       @build_steps begin
+#         ChangeDirectory(srcdirnc)
+#         MakeTargets(["install"]) #`make install`
+#       end
+#   end), ncursestw, os = :Darwin)
+
+
 @unix_only begin
 
     ncurses = library_dependency("ncurses", aliases = aliases_ncurses)
-    ncursestw = library_dependency("ncursestw", aliases = aliases_ncursestw)
+
 
     @linux_only begin
 
@@ -51,6 +126,11 @@ end
 
 end
 
+
+
+# ncurses = library_dependency("ncurses", aliases = aliases_ncurses)
+# ncursestw = library_dependency("ncursestw", aliases = aliases_ncursestw)
+# /
 # provides(Sources, {URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-5.9-20150214.tgz") => ncursestw})
 #
 # ncurses_home = get(ENV, "NCURSES_HOME", "") # If NCURSES_HOME is defined, add to library search path
