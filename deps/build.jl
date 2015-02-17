@@ -39,48 +39,48 @@ if NCURSES_MODE == "tw" || NCURSES_MODE == "w" || NCURSES_MODE == "t"
 
   prefix = BinDeps.usrdir(ncurses)
   provides( BuildProcess,
-            Autotools(
-            libtarget = [ "lib/libncursestw.$(BinDeps.shlib_ext)",
-                          "lib/libformtw.$(BinDeps.shlib_ext)",
-                          "lib/libmenutw.$(BinDeps.shlib_ext)",
-                          "lib/libpaneltw.$(BinDeps.shlib_ext)" ],
-              configure_options = [
-                                  "--prefix=$(prefix)",
-                                  "--without-ada",
-                                  "--without-cxx",
-                                  "--without-cxx-binding",
-                                  "--without-manpages",
-                                  # "--with-manpage-format=normal",
-                                  "--enable-dependency-linking",
-                                  # "--enable-pc-files",
-                                  "--enable-sigwinch",
-                                  "--enable-symlinks",
-                                  "--enable-rpath",
-                                  "--enable-widec",
-                                  "--with-shared",
-                                  # "--with-normal",
-                                  "--enable-ext-colors",
-                                  "--enable-ext-mouse",
-                                  "--enable-getcap",
-                                  "--enable-hard-tabs",
-                                  "--enable-term-driver",
-                                  "--enable-interop",
-                                  "--enable-reentrant",
-                                  "--with-pthread",
-                                  "--enable-termcap",
-                                  "--with-sysmouse",
-                                  "--enable-sp-funcs",
-                                  "--enable-term-driver",
-                                  "--enable-tcap-names"
-                                ],
-                                prefix = prefix
-            ), ncurses,
-            onload =
-            """
-            function __init__()
-                ENV["NCURSES_MODE"] = "tw"
-            end
-            """)
+  Autotools(
+  libtarget = [ "lib/libncursestw.$(BinDeps.shlib_ext)",
+  "lib/libformtw.$(BinDeps.shlib_ext)",
+  "lib/libmenutw.$(BinDeps.shlib_ext)",
+  "lib/libpaneltw.$(BinDeps.shlib_ext)" ],
+  configure_options = [
+  "--prefix=$(prefix)",
+  "--without-ada",
+  "--without-cxx",
+  "--without-cxx-binding",
+  "--without-manpages",
+  # "--with-manpage-format=normal",
+  "--enable-dependency-linking",
+  # "--enable-pc-files",
+  "--enable-sigwinch",
+  "--enable-symlinks",
+  "--enable-rpath",
+  "--enable-widec",
+  "--with-shared",
+  # "--with-normal",
+  "--enable-ext-colors",
+  "--enable-ext-mouse",
+  "--enable-getcap",
+  "--enable-hard-tabs",
+  "--enable-term-driver",
+  "--enable-interop",
+  "--enable-reentrant",
+  "--with-pthread",
+  "--enable-termcap",
+  "--with-sysmouse",
+  "--enable-sp-funcs",
+  "--enable-term-driver",
+  "--enable-tcap-names"
+  ],
+  prefix = prefix
+  ), ncurses,
+  onload =
+  """
+  function __init__()
+    ENV["NCURSES_MODE"] = "tw"
+  end
+  """)
   @BinDeps.install Dict([(:ncurses => :ncurses)])
 else
   info("Using system ncurses library.")
@@ -91,7 +91,7 @@ else
     onload =
     """
     function __init__()
-        ENV["NCURSES_MODE"] = ""
+      ENV["NCURSES_MODE"] = ""
     end
     """)
     # find out if current build method works on Win.
@@ -104,7 +104,7 @@ else
     onload =
     """
     function __init__()
-        ENV["NCURSES_MODE"] = ""
+      ENV["NCURSES_MODE"] = ""
     end
     """)
     # TODO: Not sure, check if they are valid
@@ -121,14 +121,12 @@ else
     onload =
     """
     function __init__()
-        ENV["NCURSES_MODE"] = ""
+      ENV["NCURSES_MODE"] = ""
     end
     """)
   end
   @BinDeps.install Dict([(:ncurses => :ncurses)])
 end
-
-
 
 #
 # # Now we define build steps for our tuned version. The idea
