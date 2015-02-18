@@ -83,7 +83,8 @@ if NCURSES_MODE == "tw" || NCURSES_MODE == "w" || NCURSES_MODE == "t"
   "--with-sysmouse",
   "--enable-sp-funcs",
   "--enable-term-driver",
-  "--enable-tcap-names"
+  "--enable-tcap-names",
+  "--enable-const"
   ],
   prefix = prefix
   ), ncurses,
