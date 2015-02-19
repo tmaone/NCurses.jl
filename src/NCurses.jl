@@ -1,6 +1,7 @@
 # julia ncurses interface
 # TODO:
 # - examine the option to use Clang.jl's C wrapper generator
+#   * so far I can spot a few reasons why this option wouldn't work
 
 module NCurses
 
@@ -18,8 +19,7 @@ else
   error("NCurses not properly installed. Please run Pkg.build(\"NCurses\")")
 end
 
-# think if needed to do this, or should we leave it to be application
-# dependent.
+# think if it is needed to do this, or should we leave it to each application
 function __init__()
     err = ccall((:initscr, ncurses), Ptr{Void}, ())
     err != C_NULL || error("error initializing NCurses module")
