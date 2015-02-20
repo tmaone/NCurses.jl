@@ -7,129 +7,186 @@ using BinDeps
 const nc_major = 5
 const nc_minor = 9
 const nc_patch = 20150214
+const nc_version = v"5.9.20150214"
 
-const nc_version = "$(nc_major).$(nc_minor)"
-const nc_version_patch = "$(nc_version)-$(nc_patch)"
+const nc_libs  = ["libcurses", "libncurses"]
 
-const nc_lib = ["libcurses", "libncurses"]
-const nctw_lib = ["libncursestw", "libncursest", "libncursesw"]
+const nc_panel = "libpanel"
+const nc_form  = "libform"
+const nc_menu  = "libmenu"
 
-const nc_panel_lib = ["libpanel", "libpaneltw"]
-const nc_form_lib = ["libform", "libformtw"]
-const nc_menu_lib = ["libmenu", "libmenutw"]
-
-const suffixes = ["", ".6", "-5.9", ".5.9", ".5.4", ".5", ".$(nc_version)"]
+const suffixes = ["", ".6", "-5.9", ".5.9", ".5.4", ".5", ".$(nc_major).$(nc_minor)"]
 
 const options = [""]
 
 const extensions = ["", ".$(BinDeps.shlib_ext)" ]
 
-const installed_file = "installed_version"
+const config_file = "config.jl"
 
 const NCURSES_MODE = get(ENV, "NCURSES_MODE", "")
 
-aliases_ncurses = vec(nc_lib.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
+if NCURSES_MODE != ""
+    const NCURSES_SYSTEM = 0
+else
+  const NCURSES_SYSTEM = get(ENV, "NCURSES_SYSTEM", 1)
+end
 
-aliases_ncursestw = vec(nctw_lib.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
+nc_aliases = vec(nc_libs.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
+nc_panel_alias = "$(nc_panel).$(BinDeps.shlib_ext)"
+nc_form_alias = "$(nc_form).$(BinDeps.shlib_ext)"
+nc_menu_alias = "$(nc_menu).$(BinDeps.shlib_ext)"
 
-alias_nc_panel = [nc_panel_lib[1]*""*extensions[2]]
-alias_nc_paneltw = [nc_panel_lib[2]*""*extensions[2]]
-alias_nc_form = [nc_form_lib[1]*""*extensions[2]]
-alias_nc_formtw = [nc_form_lib[2]*""*extensions[2]]
-alias_nc_menu = [nc_menu_lib[1]*""*extensions[2]]
-alias_nc_menutw = [nc_menu_lib[2]*""*extensions[2]]
-
-if NCURSES_MODE == "tw" || NCURSES_MODE == "w" || NCURSES_MODE == "t"
+if NCURSES_MODE == "w" || NCURSES_MODE == "t" ||  NCURSES_MODE == "tw" || NCURSES_MODE == "new"
 
   info("NCurses-extra library enabled. [$NCURSES_MODE]")
-  # Now we define build steps for our tuned version. The idea
-  # is to start with one build target, with os differentiation coming
-  # to place upon necessity
-  ncurses = library_dependency("ncurses", aliases = aliases_ncursestw)
+  ncurses = library_dependency("ncurses", aliases = nc_aliases,
+      validate = (name, handle) -> begin
+          major, minor, patch = int, int, int
+          nc_ver = ccall(dlsym(handle, :curses_version), Ptr{UInt8}, ())
+          if nc_ver != C_NULL
+            extracted = split(split(bytestring(nc_ver), ' ')[2],'.')[1:3]
+            major = int(extracted[1])
+            minor = int(extracted[2])
+            patch = int(extracted[3])
+            v = VersionNumber(major, minor, patch)
+            if v.major == nc_version.major && v.minor == nc_version.minor
+                return true
+            else
+                return false
+            end
+          else
+            return false
+          end
+      end)
 
-  provides(Sources, URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-$(nc_version_patch).tgz"), SHA="c88fecbf91b94faa1de7dc3192ad2fd227eeed1648c5daa736119b9a7ff08e07", ncurses)
+  provides(Sources, URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-$(nc_major).$(nc_minor)-$(nc_patch).tgz"), SHA="c88fecbf91b94faa1de7dc3192ad2fd227eeed1648c5daa736119b9a7ff08e07", ncurses)
 
-  prefix = BinDeps.usrdir(ncurses)
-  provides( BuildProcess,
-  Autotools(
-  libtarget = [ "lib/libncursestw.$(BinDeps.shlib_ext)",
-  "lib/libformtw.$(BinDeps.shlib_ext)",
-  "lib/libmenutw.$(BinDeps.shlib_ext)",
-  "lib/libpaneltw.$(BinDeps.shlib_ext)" ],
-  configure_options = [
-  "--prefix=$(prefix)",
-  # "--without-ada",
-  # "--without-cxx",
-  # "--without-cxx-binding",
-  # "--without-manpages",
-  # "--without-normal",
-  # "--without-debug",
-  # "--disable-overwrite",
-  # "--with-manpage-format=normal",
-  # "--enable-dependency-linking",
-  "--enable-string-hacks",
-  # "--with-libtool",
-  "--disable-macros",
-  # "--enable-echo",
-  # "--enable-pc-files",
-  "--enable-sigwinch",
-  # "--enable-symlinks",
-  "--enable-rpath",
-  "--enable-widec",
-  "--with-shared",
-  "--with-normal",
-  "--enable-ext-colors",
-  "--enable-ext-mouse",
-  "--enable-getcap",
-  "--enable-hard-tabs",
-  # "--enable-term-driver",
-  "--enable-interop",
-  "--enable-reentrant",
-  "--with-pthread",
-  "--enable-termcap",
-  "--with-sysmouse",
-  # "--enable-sp-funcs",
-  "--enable-tcap-names"
-  # "--enable-const"
-  ],
-  prefix = prefix
-  ), ncurses,
-  onload =
-  """
-  function __init__()
-    ENV["NCURSES_MODE"] = "tw"
-  end
-  """)
+  prefix = BinDeps.builddir(ncurses)
 
-  if !(joinpath(prefix, "lib") in DL_LOAD_PATH)
-      push!(DL_LOAD_PATH, joinpath(prefix, "lib") )
+  config_options = [
+    "--prefix=$(prefix)",
+    "--enable-echo",
+    "--enable-ext-mouse",
+    "--enable-rpath",
+    "--with-shared"
+  ]
+
+  if NCURSES_MODE == "w"
+    push!(config_options, "--enable-widec")
+    push!(config_options, "--enable-lib-suffixes") # Strange configure variable behavior, this has the opposite effect
+  elseif NCURSES_MODE == "t"
+    push!(config_options, "--with-pthread")
+    push!(config_options, "--enable-lib-suffixes") # Strange configure variable behavior, this has the opposite effect
+  elseif  NCURSES_MODE == "tw"
+    push!(config_options, "--enable-widec")
+    push!(config_options, "--enable-ext-colors")
+    push!(config_options, "--with-pthread")
+    push!(config_options, "--enable-lib-suffixes") # Strange configure variable behavior, this has the opposite effect
   end
 
-  panel = library_dependency("panel", aliases = alias_nc_paneltw)
-  form = library_dependency("form", aliases = alias_nc_formtw)
-  menu = library_dependency("menu", aliases = alias_nc_menutw)
+    println(config_options)
 
-  @BinDeps.install Dict([(:ncurses => :ncurses), (:panel => :panel), (:form => :form), (:menu => :menu)])
-  # @BinDeps.install Dict([(:ncurses => :ncurses), (:panel => :panel), (:form => :form), (:menu => :menu)])
-else
+    provides(BuildProcess,
+    Autotools(
+    libtarget = [ "lib/libncurses.$(BinDeps.shlib_ext)",
+    "lib/libform.$(BinDeps.shlib_ext)",
+    "lib/libmenu.$(BinDeps.shlib_ext)",
+    "lib/libpanel.$(BinDeps.shlib_ext)"],
+    configure_options = config_options,
+    prefix = prefix,
+    ), ncurses,
+    onload =
+    """
+    function __init__()
+      ENV["NCURSES_MODE"] = "$(NCURSES_MODE)"
+    end
+    """)
+
+    if !(joinpath(prefix, "lib") in DL_LOAD_PATH)
+      unshift!(DL_LOAD_PATH, joinpath(prefix, "lib") )
+    end
+
+    # println(DL_LOAD_PATH)
+
+    panel = library_dependency("panel", aliases = nc_panel_alias,
+        validate = (name, handle) -> begin
+            major, minor, patch = int, int, int
+            nc_ver = ccall(dlsym(handle, :curses_version), Ptr{UInt8}, ())
+            if nc_ver != C_NULL
+              extracted = split(split(bytestring(nc_ver), ' ')[2],'.')[1:3]
+              major = int(extracted[1])
+              minor = int(extracted[2])
+              patch = int(extracted[3])
+              v = VersionNumber(major, minor, patch)
+              if v.major == nc_version.major && v.minor == nc_version.minor
+                  return true
+              else
+                  return false
+              end
+            else
+              return false
+            end
+          end)
+
+    form = library_dependency("form", aliases = nc_form_alias,
+        validate = (name, handle) -> begin
+            major, minor, patch = int, int, int
+            nc_ver = ccall(dlsym(handle, :curses_version), Ptr{UInt8}, ())
+            if nc_ver != C_NULL
+              extracted = split(split(bytestring(nc_ver), ' ')[2],'.')[1:3]
+              major = int(extracted[1])
+              minor = int(extracted[2])
+              patch = int(extracted[3])
+              v = VersionNumber(major, minor, patch)
+              if v.major == nc_version.major && v.minor == nc_version.minor
+                  return true
+              else
+                  return false
+              end
+            else
+              return false
+            end
+          end)
+
+    menu = library_dependency("menu", aliases = nc_menu_alias,
+        validate = (name, handle) -> begin
+            major, minor, patch = int, int, int
+            nc_ver = ccall(dlsym(handle, :curses_version), Ptr{UInt8}, ())
+            if nc_ver != C_NULL
+              extracted = split(split(bytestring(nc_ver), ' ')[2],'.')[1:3]
+              major = int(extracted[1])
+              minor = int(extracted[2])
+              patch = int(extracted[3])
+              v = VersionNumber(major, minor, patch)
+              if v.major == nc_version.major && v.minor == nc_version.minor
+                  return true
+              else
+                  return false
+              end
+            else
+              return false
+            end
+          end)
+
+elseif NCURSES_SYSTEM == 1
   info("Using system ncurses library.")
   # We start adding the standard ncurses library, :win then :linux then :darwin
   @windows_only begin
     using WinRPM
-    ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Windows)
-    panel = library_dependency("panel", aliases = alias_nc_panel)
-    form = library_dependency("form", aliases = alias_nc_form)
-    menu = library_dependency("menu", aliases = alias_nc_menu)
+    ncurses = library_dependency("ncurses", aliases = nc_aliases, os = :Windows)
+    panel = library_dependency("panel", aliases = nc_panel_alias)
+    form = library_dependency("form", aliases = nc_form_alias)
+    menu = library_dependency("menu", aliases = nc_menu_alias)
     # find out if current build method works on Win.
     provides(WinRPM.RPM,"ncurses", ncurses, os = :Windows)
     # TODO: remove me when upstream is fixed
     warn("Not supported yet!")
   end
   @linux_only begin
-    ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Linux)
-    panel = library_dependency("panel", aliases = alias_nc_panel)
-    form = library_dependency("form", aliases = alias_nc_form)
-    menu = library_dependency("menu", aliases = alias_nc_menu)
+    ncurses = library_dependency("ncurses", aliases = nc_aliases, os = :Linux)
+    panel = library_dependency("panel", aliases = nc_panel_alias)
+    form = library_dependency("form", aliases = nc_form_alias)
+    menu = library_dependency("menu", aliases = nc_menu_alias)
     # TODO: Not sure, check if they are valid
     provides(AptGet, "ncurses", ncurses)
     provides(Pacman, "ncurses", ncurses)
@@ -140,13 +197,100 @@ else
     # homebrew has ncurses in dupes, atm building through
     # homebrew is not an option threrefore we just add
     # this old ncurses lib for now by default
-    ncurses = library_dependency("ncurses", aliases = aliases_ncurses, os = :Dawrin)
-    panel = library_dependency("panel", aliases = alias_nc_panel)
-    form = library_dependency("form", aliases = alias_nc_form)
-    menu = library_dependency("menu", aliases = alias_nc_menu)
+    ncurses = library_dependency("ncurses", aliases = nc_aliases, os = :Dawrin)
+    panel = library_dependency("panel", aliases = nc_panel_alias)
+    form = library_dependency("form", aliases = nc_form_alias)
+    menu = library_dependency("menu", aliases = nc_menu_alias)
   end
-  @BinDeps.install Dict([(:ncurses => :ncurses), (:panel => :panel), (:form => :form), (:menu => :menu)])
 end
+
+@BinDeps.install Dict([(:ncurses => :ncurses), (:panel => :panel), (:form => :form), (:menu => :menu)])
+
+#
+# aliases_ncursestw = vec(nctw_lib.*transpose(suffixes).*reshape(options,(1,1,length(options))).*reshape(extensions,(1,1,1,length(extensions))))
+#
+# alias_nc_panel = [nc_panel_lib[1]*""*extensions[2]]
+# alias_nc_paneltw = [nc_panel_lib[2]*""*extensions[2]]
+# alias_nc_form = [nc_form_lib[1]*""*extensions[2]]
+# alias_nc_formtw = [nc_form_lib[2]*""*extensions[2]]
+# alias_nc_menu = [nc_menu_lib[1]*""*extensions[2]]
+# alias_nc_menutw = [nc_menu_lib[2]*""*extensions[2]]
+#
+# if NCURSES_MODE == "tw" || NCURSES_MODE == "w" || NCURSES_MODE == "t"
+#
+#
+#   # Now we define build steps for our tuned version. The idea
+#   # is to start with one build target, with os differentiation coming
+#   # to place upon necessity
+#   ncurses = library_dependency("ncurses", aliases = aliases_ncursestw)
+#
+#   provides(Sources, URI("http://invisible-mirror.net/archives/ncurses/current/ncurses-$(nc_version_patch).tgz"), SHA="c88fecbf91b94faa1de7dc3192ad2fd227eeed1648c5daa736119b9a7ff08e07", ncurses)
+#
+#   prefix = BinDeps.usrdir(ncurses)
+#   provides( BuildProcess,
+#   Autotools(
+#   libtarget = [ "lib/libncursestw.$(BinDeps.shlib_ext)",
+#   "lib/libformtw.$(BinDeps.shlib_ext)",
+#   "lib/libmenutw.$(BinDeps.shlib_ext)",
+#   "lib/libpaneltw.$(BinDeps.shlib_ext)" ],
+#   configure_options = [
+#   "--prefix=$(prefix)",
+#   # "--without-ada",
+#   # "--without-cxx",
+#   # "--without-cxx-binding",
+#   # "--without-manpages",
+#   # "--without-normal",
+#   # "--without-debug",
+#   # "--disable-overwrite",
+#   # "--with-manpage-format=normal",
+#   # "--enable-dependency-linking",
+#   "--enable-string-hacks",
+#   # "--with-libtool",
+#   "--disable-macros",
+#   # "--enable-echo",
+#   # "--enable-pc-files",
+#   "--enable-sigwinch",
+#   # "--enable-symlinks",
+#   "--enable-rpath",
+#   "--enable-widec",
+#   "--with-shared",
+#   "--with-normal",
+#   "--enable-ext-colors",
+#   "--enable-ext-mouse",
+#   "--enable-getcap",
+#   "--enable-hard-tabs",
+#   # "--enable-term-driver",
+#   "--enable-interop",
+#   # "--enable-reentrant",
+#   "--with-pthread",
+#   "--enable-termcap",
+#   "--with-sysmouse",
+#   # "--enable-sp-funcs",
+#   "--enable-tcap-names"
+#   # "--enable-const"
+#   ],
+#   prefix = prefix
+#   ), ncurses,
+#   onload =
+#   """
+#   function __init__()
+#     ENV["NCURSES_MODE"] = "tw"
+#   end
+#   """)
+#
+#   if !(joinpath(prefix, "lib") in DL_LOAD_PATH)
+#       push!(DL_LOAD_PATH, joinpath(prefix, "lib") )
+#   end
+#
+#   panel = library_dependency("panel", aliases = alias_nc_paneltw)
+#   form = library_dependency("form", aliases = alias_nc_formtw)
+#   menu = library_dependency("menu", aliases = alias_nc_menutw)
+#
+#   @BinDeps.install Dict([(:ncurses => :ncurses), (:panel => :panel), (:form => :form), (:menu => :menu)])
+#   # @BinDeps.install Dict([(:ncurses => :ncurses), (:panel => :panel), (:form => :form), (:menu => :menu)])
+# else
+#
+# end
 #
 # # Now we define build steps for our tuned version. The idea
 # # is to start with one build target, with os differentiation coming
