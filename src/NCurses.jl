@@ -28,12 +28,6 @@ function __init__()
     end
 end
 
-include("constants.jl")
-include("curses.jl")
-include("form.jl")
-include("menu.jl")
-include("panel.jl")
-
 function version()
     nc_ver = ccall((:curses_version, ncurses) , Ptr{UInt8}, ())
     if nc_ver != C_NULL
@@ -43,6 +37,13 @@ function version()
     end
 end
 
-end
+include("common.jl")
+include("curses.jl")
+include("text.jl")
+include("window.jl")
+include("screen.jl")
+include("form.jl")
+include("menu.jl")
+include("panel.jl")
 
-# end # module
+end #module

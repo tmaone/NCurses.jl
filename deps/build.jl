@@ -88,7 +88,7 @@ if NCURSES_MODE == "tw" || NCURSES_MODE == "w" || NCURSES_MODE == "t"
   "--with-pthread",
   "--enable-termcap",
   "--with-sysmouse",
-  "--enable-sp-funcs",
+  # "--enable-sp-funcs",
   "--enable-tcap-names"
   # "--enable-const"
   ],

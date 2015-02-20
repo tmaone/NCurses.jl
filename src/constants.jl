@@ -80,7 +80,7 @@ const WA_ALTCHARSET=	A_ALTCHARSET
 const WA_INVIS	=A_INVIS
 const WA_PROTECT	=A_PROTECT
 const WA_HORIZONTAL=	A_HORIZONTAL
-const WA_LEFT=		A_LEFT
+const WA_LEFT=	A_LEFT
 const WA_LOW	=	A_LOW
 const WA_RIGHT=	A_RIGHT
 const WA_TOP	=	A_TOP
@@ -135,7 +135,7 @@ type pdat
 end
 
 
-type _win_st
+immutable Window
 
   _cury::NCURSES_SIZE_T
   _curx::NCURSES_SIZE_T
@@ -176,7 +176,7 @@ type _win_st
 
 end
 
-typealias WINDOW _win_st
+typealias WINDOW Window
 
 const _NC_EVENT_TIMEOUT_MSEC = 1
 const _NC_EVENT_FILE = 2
