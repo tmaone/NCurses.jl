@@ -20,6 +20,9 @@ else
 end
 
 # think if it is needed to do this, or should we leave it to each application
+# follow-up : no we certainly do not want to do this init here, as this
+# returns the screns' main pointer which should be available to the application.
+# Now, thinking about moving this to a module singleton object.
 function __init__()
     err = ccall((:initscr, ncurses), Ptr{Void}, ())
     err != C_NULL || error("error initializing NCurses module")
@@ -46,5 +49,6 @@ include("form.jl")
 include("menu.jl")
 include("panel.jl")
 include("event.jl")
+include("other.jl")
 
 end #module

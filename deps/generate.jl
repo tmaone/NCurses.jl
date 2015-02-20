@@ -32,7 +32,7 @@ out_path = joinpath(Pkg.dir("Ncurses"), "test")
 out_file = joinpath(out_path, "gen_ncurses.jl")
 out_common = joinpath(out_path, "gen_ncurses_h.jl")
 
-clang_extraargs = ["-D", "__STDC_LIMIT_MACROS", "-D", "__STDC_CONSTANT_MACROS", "-D", "NCURSES_WIDECHAR", "-D", "NCURSES_TPARM_VARARGS", "-D", "NCURSES_INTEROP_FUNCS", "-D", "NCURSES_REENTRANT", "-D", "NCURSES_OPAQUE"]
+# clang_extraargs = ["-D", "__STDC_LIMIT_MACROS", "-D", "__STDC_CONSTANT_MACROS", "-D", "NCURSES_WIDECHAR", "-D", "NCURSES_TPARM_VARARGS", "-D", "NCURSES_INTEROP_FUNCS", "-D", "NCURSES_REENTRANT", "-D", "NCURSES_OPAQUE"]
 
 context=wrap_c.init(
                     headers = headers,
@@ -41,33 +41,10 @@ context=wrap_c.init(
                     header_library="ncurses",
                     clang_includes=_clang_includes,
                     clang_diagnostics=true
-                    # header_wrapped=(x,y)->contains(x,"cuda"),
-                    # header_wrapped=(x,y)->true
-                    # ,
-                    # rewriter=rewriter)
                     )
 
 context.options = wrap_c.InternalOptions(true,true)  # wrap structs, too
 context.options.wrap_structs = true
 
-# wrap_c.wrap_c_headers(wc, ["/usr/include/curl/curl.h"])
-
 # Execute the wrap
 run(context)
-
-
-
-
-
-# push!(DL_LOAD_PATH, readchomp(`$(ENV["LLVM_CONFIG"]) --libdir`))
-#
-# cd(joinpath(Pkg.dir(), "Clang", "deps", "src") )
-# run(`make`)
-# if (!ispath("../usr"))
-#   run(`mkdir ../usr`)
-# end
-# if (!ispath("../usr/lib"))
-#   run(`mkdir ../usr/lib`)
-# end
-#
-# run(`mv libwrapclang.$(Base.Sys.shlib_ext) ../usr/lib`)
