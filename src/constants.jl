@@ -96,7 +96,7 @@ const COLOR_MAGENTA = 5
 const COLOR_CYAN    = 6
 const COLOR_WHITE   = 7
 
-# not really used. See getmouse() hack in ccall.jl
+# not really used. See getmouse() hack
 NCURSES_MOUSE_MASK(b,m) = m<<((b-1)*6)
 
 const NCURSES_BUTTON_PRESSED = uint32(2)
@@ -178,30 +178,8 @@ end
 
 typealias WINDOW Window
 
-const _NC_EVENT_TIMEOUT_MSEC = 1
-const _NC_EVENT_FILE = 2
-const _NC_EVENT_FILE_READABLE = 2
-#  Not supported yet... *
-const _NC_EVENT_FILE_WRITABLE = 4
-const _NC_EVENT_FILE_EXCEPTION = 8
 
-type _nc_event
-  _type::Cint
-  type data
-    timeout_msec::Clong
-    type fev
-        flags::Cuint
-        fd::Cint
-        result::Cuint
-    end
-  end
-end
 
-type _nc_eventlist
-  count::Cint
-  result_flags::Cint
-  events::Ptr{Array{_nc_event, 1}}
-end
 
 
 

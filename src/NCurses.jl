@@ -45,5 +45,6 @@ include("screen.jl")
 include("form.jl")
 include("menu.jl")
 include("panel.jl")
+include("event.jl")
 
 end #module
